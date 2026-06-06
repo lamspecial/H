@@ -3,7 +3,8 @@
 <html lang="ar" dir="rtl">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <meta name="HandheldFriendly" content="true" />
   <title>CHAT_ROOM</title>
   <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;500;600&display=swap" rel="stylesheet" />
 
@@ -110,7 +111,11 @@
       --radius:   18px;
     }
 
-    html { touch-action: manipulation; }
+    html {
+      touch-action: manipulation;
+      -ms-touch-action: manipulation;
+      -webkit-text-size-adjust: 100%;
+    }
 
     html, body {
       height: 100%;
@@ -155,19 +160,15 @@
       text-align: center;
     }
 
-    /* ── MSG BUBBLE ── */
+    /* ── MSG BUBBLE — بدون إطار ── */
     .msg-line {
       display: inline-flex;
       align-self: flex-start;
-      background: var(--bg2);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 0.5rem 0.9rem;
-      max-width: 85%;
-      transition: background 0.1s;
+      background: transparent;
+      border: none;
+      padding: 0.15rem 0.4rem;
+      max-width: 90%;
     }
-
-    .msg-line:hover { background: var(--hover-bg); }
 
     .msg-text {
       word-break: break-word;
@@ -233,9 +234,8 @@
     #send-btn svg {
       width: 22px;
       height: 22px;
-      fill: var(--fg);
-      /* اتجاه الإرسال للعربي — يمين إلى يسار */
-      transform: rotate(180deg);
+      color: var(--fg);
+      stroke: var(--fg);
     }
 
     /* ── STATUS ── */
@@ -266,16 +266,14 @@
       id="msg-input"
       type="text"
       maxlength="500"
-      placeholder="اكتب رسالتك..."
       autocomplete="off"
       autocorrect="off"
       autocapitalize="off"
       spellcheck="false"
     />
     <button id="send-btn" aria-label="إرسال">
-      <!-- SVG طائرة ورقية بسيطة -->
-      <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-        <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
+      <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="5 15 12 8 19 15"/>
       </svg>
     </button>
   </div>
