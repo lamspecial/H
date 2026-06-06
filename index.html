@@ -3,29 +3,18 @@
 <html lang="ar" dir="rtl">
 <head>
   <meta charset="UTF-8" />
-  <!-- منع التكبير/التصغير على الجوال وتثبيت الشاشة -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no" />
-  <title>// CHAT_ROOM — PUBLIC TERMINAL</title>
+  <title>CHAT_ROOM</title>
+  <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;500;600&display=swap" rel="stylesheet" />
 
   <script type="module">
-    import { initializeApp }          from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
     import {
-      getFirestore,
-      collection,
-      addDoc,
-      query,
-      orderBy,
-      limit,
-      onSnapshot,
-      serverTimestamp,
-      getDocs,
-      deleteDoc,
-      doc
+      getFirestore, collection, addDoc, query,
+      orderBy, limit, onSnapshot, serverTimestamp,
+      getDocs, deleteDoc, doc
     } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
 
-    /* ════════════════════════════════════════════
-       FIREBASE CONFIG — مفاتيح المشروع الحقيقية
-    ════════════════════════════════════════════ */
     const firebaseConfig = {
       apiKey:            "AIzaSyBLczKyVaqT89GN_o_bY7E1F1AFthFultg",
       authDomain:        "proj-89c9c.firebaseapp.com",
@@ -37,83 +26,52 @@
 
     const app = initializeApp(firebaseConfig);
     const db  = collection(getFirestore(app), "messages");
-
     const MAX_MESSAGES = 50;
 
-    /* تنسيق الوقت → HH:MM */
-    function formatTime(ts) {
-      if (!ts) return "--:--";
-      const d = ts.toDate ? ts.toDate() : new Date(ts);
-      return d.toTimeString().slice(0, 5);
-    }
-
-    /* رسم رسالة واحدة في الواجهة */
     const messagesEl = document.getElementById("messages");
 
     function renderMessage(data) {
       const line = document.createElement("div");
       line.className = "msg-line";
-
-      const time = document.createElement("span");
-      time.className = "msg-time";
-      time.textContent = formatTime(data.timestamp);
-
-      const prefix = document.createElement("span");
-      prefix.className = "msg-prefix";
-      prefix.textContent = "anon@chat:~$";
-
       const text = document.createElement("span");
       text.className = "msg-text";
-      text.textContent = data.text; // textContent آمن من XSS
-
-      line.appendChild(time);
-      line.appendChild(prefix);
+      text.textContent = data.text;
       line.appendChild(text);
       messagesEl.appendChild(line);
     }
 
-    /* الاستماع الفوري — Real-Time Listener */
     const q = query(db, orderBy("timestamp", "asc"), limit(MAX_MESSAGES));
-
     onSnapshot(q, (snapshot) => {
       messagesEl.innerHTML = "";
       snapshot.forEach(docSnap => renderMessage(docSnap.data()));
       messagesEl.scrollTop = messagesEl.scrollHeight;
     });
 
-    /* حذف أقدم رسالة إذا بلغ العدد الحد الأقصى */
     async function enforceLimit() {
       const snap = await getDocs(query(db, orderBy("timestamp", "asc")));
-      if (snap.size >= MAX_MESSAGES) {
+      if (snap.size >= MAX_MESSAGES)
         await deleteDoc(doc(getFirestore(app), "messages", snap.docs[0].id));
-      }
     }
 
-    /* إرسال رسالة */
-    const inputEl  = document.getElementById("msg-input");
-    const sendBtn  = document.getElementById("send-btn");
+    const inputEl = document.getElementById("msg-input");
+    const sendBtn = document.getElementById("send-btn");
     const statusEl = document.getElementById("status");
 
     async function sendMessage() {
       const text = inputEl.value.trim();
       if (!text) return;
-      if (text.length > 500) {
-        showStatus(`ERR: الرسالة تتجاوز 500 حرف (${text.length})`);
-        return;
-      }
+      if (text.length > 500) { showStatus("الرسالة طويلة جداً"); return; }
 
       sendBtn.disabled = true;
       inputEl.disabled = true;
-      showStatus("إرسال...");
 
       try {
         await enforceLimit();
         await addDoc(db, { text, timestamp: serverTimestamp() });
         inputEl.value = "";
-        updateCounter();
         showStatus("");
       } catch (err) {
-        showStatus("ERR: فشل الإرسال — " + err.code);
+        showStatus("فشل الإرسال");
         console.error(err);
       } finally {
         sendBtn.disabled = false;
@@ -122,27 +80,11 @@
       }
     }
 
-    /* ربط الأحداث */
     sendBtn.addEventListener("click", sendMessage);
-
     inputEl.addEventListener("keydown", (e) => {
-      if (e.key === "Enter" && !e.shiftKey) {
-        e.preventDefault();
-        sendMessage();
-      }
+      if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMessage(); }
     });
 
-    /* عداد الأحرف */
-    const counterEl = document.getElementById("char-counter");
-    function updateCounter() {
-      const len = inputEl.value.length;
-      counterEl.textContent = `${len}/500`;
-      counterEl.classList.toggle("warn", len > 400);
-      counterEl.classList.toggle("over", len > 500);
-    }
-    inputEl.addEventListener("input", updateCounter);
-
-    /* رسالة حالة مؤقتة */
     let statusTimer;
     function showStatus(msg) {
       statusEl.textContent = msg;
@@ -154,258 +96,158 @@
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-    /* ══════════════════════════════════════════
-       متغيرات اللون — كحلي غامق
-    ══════════════════════════════════════════ */
     :root {
-      --bg:         #0b0f1a;   /* كحلي غامق جداً — الخلفية الرئيسية */
-      --bg2:        #0f1629;   /* كحلي أفتح قليلاً للهيدر والفوتر */
-      --fg:         #e8eaf6;   /* أبيض مائل للبنفسجي الفاتح */
-      --dim:        #6b7db3;   /* كحلي فاتح للنصوص الثانوية */
-      --border:     #1e2d50;   /* حدود كحلية */
-      --hover-bg:   #131d33;   /* hover على الرسائل */
-      --btn-bg:     #1e2d50;   /* خلفية الزر */
-      --btn-hover:  #2a3f70;   /* hover الزر */
-      --accent:     #4a6fa5;   /* لون تمييز خفيف */
-      --font:       "Consolas", "Courier New", "Lucida Console", monospace;
-      --fs-base:    0.9rem;
-      --fs-small:   0.75rem;
-      --radius:     3px;
+      --bg:       #0b0f1a;
+      --bg2:      #0f1629;
+      --fg:       #e8eaf6;
+      --dim:      #6b7db3;
+      --border:   #1e2d50;
+      --hover-bg: #131d33;
+      --btn-bg:   #1e2d50;
+      --btn-hover:#2a3f70;
+      --accent:   #4a6fa5;
+      --font:     "Baloo 2", sans-serif;
+      --radius:   18px;
     }
 
-    /* منع التكبير بالضغط المزدوج — دعم إضافي */
-    html {
-      touch-action: manipulation;
-      -ms-touch-action: manipulation;
-    }
+    html { touch-action: manipulation; }
 
     html, body {
       height: 100%;
       background: var(--bg);
       color: var(--fg);
       font-family: var(--font);
-      font-size: var(--fs-base);
+      font-size: 1rem;
       line-height: 1.5;
       -webkit-font-smoothing: antialiased;
-      overflow: hidden; /* منع scroll على body */
+      overflow: hidden;
     }
 
-    /* ══════════════════════════════════════════
-       LAYOUT
-    ══════════════════════════════════════════ */
     #app {
       display: flex;
       flex-direction: column;
       height: 100dvh;
       max-width: 860px;
       margin: 0 auto;
-      border-inline: 1px solid var(--border);
     }
 
-    /* ══════════════════════════════════════════
-       HEADER
-    ══════════════════════════════════════════ */
-    #header {
-      flex-shrink: 0;
-      border-bottom: 1px solid var(--border);
-      padding: 0.6rem 1rem;
-      display: flex;
-      align-items: center;
-      gap: 0.75rem;
-      background: var(--bg2);
-      user-select: none;
-    }
-
-    #header::before {
-      content: "● ● ●";
-      letter-spacing: 0.3em;
-      color: var(--border);
-      font-size: 0.6rem;
-      flex-shrink: 0;
-    }
-
-    #header-title {
-      font-size: var(--fs-base);
-      font-weight: normal;
-      letter-spacing: 0.05em;
-      color: var(--fg);
-    }
-
-    #header-title span { color: var(--dim); }
-
-    /* ══════════════════════════════════════════
-       MESSAGES
-    ══════════════════════════════════════════ */
+    /* ── MESSAGES ── */
     #messages {
       flex: 1;
       overflow-y: auto;
-      padding: 0.75rem 1rem;
+      padding: 1rem 1rem 0.5rem;
       display: flex;
       flex-direction: column;
-      gap: 0.2rem;
+      gap: 0.45rem;
       scroll-behavior: smooth;
-      background: var(--bg);
     }
 
-    #messages::-webkit-scrollbar { width: 5px; }
-    #messages::-webkit-scrollbar-track { background: var(--bg); }
-    #messages::-webkit-scrollbar-thumb { background: var(--border); }
+    #messages::-webkit-scrollbar { width: 4px; }
+    #messages::-webkit-scrollbar-track { background: transparent; }
+    #messages::-webkit-scrollbar-thumb { background: var(--border); border-radius: 99px; }
 
     #messages:empty::after {
-      content: "// لا توجد رسائل بعد. كن أول من يتحدث.";
+      content: "ابدأ المحادثة...";
       color: var(--dim);
-      font-size: var(--fs-small);
-      padding-top: 1rem;
+      font-size: 0.9rem;
+      padding-top: 1.5rem;
       display: block;
+      text-align: center;
     }
 
-    /* ══════════════════════════════════════════
-       MSG LINE
-    ══════════════════════════════════════════ */
+    /* ── MSG BUBBLE ── */
     .msg-line {
-      display: flex;
-      align-items: baseline;
-      gap: 0.6em;
-      flex-wrap: wrap;
-      padding: 0.2rem 0.4rem;
+      display: inline-flex;
+      align-self: flex-start;
+      background: var(--bg2);
+      border: 1px solid var(--border);
       border-radius: var(--radius);
+      padding: 0.5rem 0.9rem;
+      max-width: 85%;
       transition: background 0.1s;
     }
 
     .msg-line:hover { background: var(--hover-bg); }
 
-    .msg-time {
-      flex-shrink: 0;
-      font-size: var(--fs-small);
-      color: var(--dim);
-      min-width: 3.2em;
-    }
-
-    .msg-prefix {
-      flex-shrink: 0;
-      color: var(--accent);
-      font-weight: bold;
-    }
-
     .msg-text {
-      flex: 1;
       word-break: break-word;
       white-space: pre-wrap;
       color: var(--fg);
+      font-size: 1rem;
     }
 
-    /* ══════════════════════════════════════════
-       INPUT AREA
-    ══════════════════════════════════════════ */
+    /* ── INPUT AREA ── */
     #input-area {
       flex-shrink: 0;
-      border-top: 1px solid var(--border);
-      padding: 0.65rem 1rem;
+      padding: 0.75rem 1rem 1rem;
       display: flex;
       flex-direction: column;
-      gap: 0.4rem;
-      background: var(--bg2);
+      gap: 0.35rem;
+      background: var(--bg);
     }
 
     #input-row {
       display: flex;
       align-items: center;
-      gap: 0.5rem;
-    }
-
-    #input-row::before {
-      content: "›";
-      color: var(--accent);
-      font-weight: bold;
-      flex-shrink: 0;
-      font-size: 1.1rem;
+      gap: 0.6rem;
     }
 
     #msg-input {
       flex: 1;
-      background: var(--bg);
-      border: 1px solid var(--border);
+      background: var(--bg2);
+      border: 1.5px solid var(--border);
       border-radius: var(--radius);
       outline: none;
       color: var(--fg);
       font-family: var(--font);
-      font-size: var(--fs-base);
-      caret-color: var(--fg);
-      padding: 0.4em 0.6em;
+      font-size: 1rem;
+      padding: 0.75em 1.1em;
       -webkit-user-drag: none;
       transition: border-color 0.15s;
+      min-height: 52px;
     }
 
     #msg-input:focus { border-color: var(--accent); }
+    #msg-input::placeholder { color: var(--dim); }
+    #msg-input:disabled { opacity: 0.5; cursor: not-allowed; }
 
-    #msg-input::placeholder { color: var(--border); }
-
-    #msg-input:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-    }
-
-    /* زر الإرسال — كحلي مميز */
+    /* ── SEND BUTTON ── */
     #send-btn {
       background: var(--btn-bg);
-      color: var(--fg);
-      border: 1px solid var(--accent);
-      font-family: var(--font);
-      font-size: var(--fs-small);
-      padding: 0.45em 1.1em;
+      border: 1.5px solid var(--accent);
+      border-radius: 50%;
+      width: 52px;
+      height: 52px;
       cursor: pointer;
-      border-radius: var(--radius);
-      letter-spacing: 0.08em;
-      transition: background 0.15s, border-color 0.15s;
-      white-space: nowrap;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       flex-shrink: 0;
-      font-weight: bold;
+      transition: background 0.15s, transform 0.1s;
     }
 
     #send-btn:hover:not(:disabled) { background: var(--btn-hover); }
-    #send-btn:active:not(:disabled) { opacity: 0.85; }
+    #send-btn:active:not(:disabled) { transform: scale(0.93); }
     #send-btn:disabled { opacity: 0.35; cursor: not-allowed; }
 
-    /* ══════════════════════════════════════════
-       STATUS ROW
-    ══════════════════════════════════════════ */
-    #status-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      font-size: var(--fs-small);
+    #send-btn svg {
+      width: 22px;
+      height: 22px;
+      fill: var(--fg);
+      /* اتجاه الإرسال للعربي — يمين إلى يسار */
+      transform: rotate(180deg);
+    }
+
+    /* ── STATUS ── */
+    #status {
+      font-size: 0.75rem;
       color: var(--dim);
-      padding-inline-start: 1.4rem;
+      padding-inline-start: 0.5rem;
+      min-height: 1em;
     }
 
-    #status { font-size: var(--fs-small); color: var(--dim); }
-
-    #char-counter { font-size: var(--fs-small); color: var(--dim); transition: color 0.2s; }
-    #char-counter.warn { color: #8899cc; }
-    #char-counter.over  { color: var(--fg); }
-
-    /* ══════════════════════════════════════════
-       FOOTER
-    ══════════════════════════════════════════ */
-    #footer {
-      flex-shrink: 0;
-      border-top: 1px solid var(--border);
-      padding: 0.3rem 1rem;
-      font-size: 0.62rem;
-      color: var(--border);
-      display: flex;
-      justify-content: space-between;
-      background: var(--bg2);
-      user-select: none;
-    }
-
-    /* ══════════════════════════════════════════
-       RESPONSIVE
-    ══════════════════════════════════════════ */
     @media (max-width: 600px) {
-      #app { border-inline: none; }
-      .msg-prefix { display: none; }
-      #send-btn { padding: 0.45em 0.75em; }
+      #msg-input { font-size: 1rem; }
     }
 
     body { -webkit-user-drag: none; }
@@ -413,17 +255,10 @@
 
 </head>
 <body>
-
   <div id="app">
 
 ```
-<header id="header">
-  <h1 id="header-title">
-    CHAT_ROOM <span>// PUBLIC — ANONYMOUS — TEXT_ONLY</span>
-  </h1>
-</header>
-
-<main id="messages" role="log" aria-live="polite" aria-label="الرسائل"></main>
+<main id="messages" role="log" aria-live="polite"></main>
 
 <footer id="input-area">
   <div id="input-row">
@@ -436,27 +271,21 @@
       autocorrect="off"
       autocapitalize="off"
       spellcheck="false"
-      aria-label="حقل كتابة الرسالة"
     />
-    <button id="send-btn" aria-label="إرسال الرسالة">إرسال</button>
+    <button id="send-btn" aria-label="إرسال">
+      <!-- SVG طائرة ورقية بسيطة -->
+      <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+        <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
+      </svg>
+    </button>
   </div>
-
-  <div id="status-row">
-    <span id="status" aria-live="assertive"></span>
-    <span id="char-counter">0/500</span>
-  </div>
+  <span id="status" aria-live="assertive"></span>
 </footer>
-
-<div id="footer">
-  <span>// آخر 50 رسالة محفوظة</span>
-  <span>FIREBASE FIRESTORE — REALTIME</span>
-</div>
 ```
 
   </div>
 
   <script>
-    /* منع سحب وإفلات الملفات كلياً */
     ["dragover", "dragenter", "drop"].forEach(evt => {
       document.addEventListener(evt, e => { e.preventDefault(); e.stopPropagation(); });
     });
