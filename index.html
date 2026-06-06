@@ -53,6 +53,27 @@
         await deleteDoc(doc(getFirestore(app), "messages", snap.docs[0].id));
     }
 
+    /* حذف الرسائل التي مضى عليها أكثر من 10 دقائق */
+    const TEN_MIN = 10 * 60 * 1000;
+
+    async function deleteExpiredMessages() {
+      const snap = await getDocs(query(db, orderBy("timestamp", "asc")));
+      const now = Date.now();
+      const deletions = [];
+      snap.forEach(docSnap => {
+        const ts = docSnap.data().timestamp;
+        if (!ts) return;
+        const msgTime = ts.toMillis ? ts.toMillis() : ts;
+        if (now - msgTime > TEN_MIN)
+          deletions.push(deleteDoc(doc(getFirestore(app), "messages", docSnap.id)));
+      });
+      if (deletions.length) await Promise.all(deletions);
+    }
+
+    /* تشغيل الحذف فور فتح الصفحة ثم كل دقيقة */
+    deleteExpiredMessages();
+    setInterval(deleteExpiredMessages, 60 * 1000);
+
     const inputEl = document.getElementById("msg-input");
     const sendBtn = document.getElementById("send-btn");
     const statusEl = document.getElementById("status");
@@ -277,6 +298,7 @@
   </div>
   <span id="status" aria-live="assertive"></span>
 </footer>
+
 
   </div>
 
