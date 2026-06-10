@@ -1,312 +1,1299 @@
 <!DOCTYPE html>
-
 <html lang="ar" dir="rtl">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, viewport-fit=cover" />
-  <meta name="HandheldFriendly" content="true" />
-  <title>CHAT_ROOM</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>خطة البحث الميداني – حضانة اي ام سبيشل (فرع مركز المملكة / مرحلة استكشافية)</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&family=Tajawal:wght@300;400;500;700&display=swap');
+  :root {
+    --bg-gradient: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+    --text-main: #0f172a;
+    --text-muted: #475569;
+    --glass-bg: rgba(255, 255, 255, 0.45);
+    --glass-border: rgba(255, 255, 255, 0.6);
+    --glass-shadow: 0 8px 32px 0 rgba(15, 23, 42, 0.04);
+    --header-bg: rgba(15, 23, 42, 0.9);
+    --accent: #1e293b;
+    --accent-light: rgba(30, 41, 59, 0.06);
+    --border-muted: rgba(15, 23, 42, 0.08);
+  }
 
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
-    import {
-      getFirestore, collection, addDoc, query,
-      orderBy, limit, onSnapshot, serverTimestamp,
-      getDocs, deleteDoc, doc
-    } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
+  * { margin: 0; padding: 0; box-sizing: border-box; }
 
-    const firebaseConfig = {
-      apiKey:            "AIzaSyBLczKyVaqT89GN_o_bY7E1F1AFthFultg",
-      authDomain:        "proj-89c9c.firebaseapp.com",
-      projectId:         "proj-89c9c",
-      storageBucket:     "proj-89c9c.firebasestorage.app",
-      messagingSenderId: "232360265495",
-      appId:             "1:232360265495:web:8e54dad001ec00960ed952"
-    };
+  body {
+    font-family: 'Cairo', 'Tajawal', sans-serif;
+    background: var(--bg-gradient);
+    background-attachment: fixed;
+    color: var(--text-main);
+    min-height: 100vh;
+    font-size: 15px;
+    line-height: 1.7;
+  }
 
-    const app = initializeApp(firebaseConfig);
-    const db  = collection(getFirestore(app), "messages");
-    const MAX_MESSAGES = 50;
+  /* ── HEADER ── */
+  header {
+    background: var(--header-bg);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    color: #ffffff;
+    padding: 0;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  }
+  .header-inner {
+    max-width: 1200px;
+    margin: auto;
+    padding: 14px 28px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+  }
+  .header-title { font-size: 1.15rem; font-weight: 700; letter-spacing: .01em; }
+  .header-sub { font-size: .78rem; color: #cbd5e1; font-weight: 400; margin-top: 2px; }
+  .header-badge {
+    background: rgba(255, 255, 255, 0.15);
+    color: #ffffff;
+    font-size: .72rem;
+    font-weight: 700;
+    padding: 4px 12px;
+    border-radius: 20px;
+    white-space: nowrap;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+  }
 
-    const messagesEl = document.getElementById("messages");
+  /* ── HERO ── */
+  .hero {
+    background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+    color: #ffffff;
+    padding: 52px 28px 44px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  }
+  .hero-content { position: relative; z-index: 1; max-width: 800px; margin: auto; }
+  .hero-eyebrow {
+    display: inline-block;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: #e2e8f0;
+    font-size: .76rem;
+    font-weight: 600;
+    padding: 4px 16px;
+    border-radius: 20px;
+    margin-bottom: 18px;
+    letter-spacing: .05em;
+  }
+  .hero h1 {
+    font-size: 2rem;
+    font-weight: 900;
+    line-height: 1.3;
+    margin-bottom: 14px;
+    color: #ffffff;
+  }
+  .hero h1 span { color: #f1f5f9; text-decoration: underline; text-underline-offset: 6px; }
+  .hero p { font-size: 1rem; color: #94a3b8; max-width: 600px; margin: 0 auto 28px; }
+  .hero-stats {
+    display: flex;
+    justify-content: center;
+    gap: 32px;
+    flex-wrap: wrap;
+  }
+  .hero-stat { text-align: center; }
+  .hero-stat .n { font-size: 2rem; font-weight: 900; color: #ffffff; }
+  .hero-stat .l { font-size: .73rem; color: #94a3b8; margin-top: -4px; }
 
-    function renderMessage(data) {
-      const line = document.createElement("div");
-      line.className = "msg-line";
-      const text = document.createElement("span");
-      text.className = "msg-text";
-      text.textContent = data.text;
-      line.appendChild(text);
-      messagesEl.appendChild(line);
-    }
+  /* ── CONTAINER ── */
+  .container { max-width: 1200px; margin: auto; padding: 36px 24px 60px; }
 
-    const q = query(db, orderBy("timestamp", "asc"), limit(MAX_MESSAGES));
-    onSnapshot(q, (snapshot) => {
-      messagesEl.innerHTML = "";
-      snapshot.forEach(docSnap => renderMessage(docSnap.data()));
-      messagesEl.scrollTop = messagesEl.scrollHeight;
-    });
+  /* ── SECTION ── */
+  .section { margin-bottom: 40px; }
+  .section-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 20px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--border-muted);
+  }
+  .section-num {
+    background: var(--accent);
+    color: #ffffff;
+    width: 36px; height: 36px;
+    border-radius: 8px;
+    display: grid;
+    place-items: center;
+    font-size: .85rem;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+  .section-header h2 { font-size: 1.25rem; font-weight: 700; color: var(--text-main); }
 
-    async function enforceLimit() {
-      const snap = await getDocs(query(db, orderBy("timestamp", "asc")));
-      if (snap.size >= MAX_MESSAGES)
-        await deleteDoc(doc(getFirestore(app), "messages", snap.docs[0].id));
-    }
+  /* ── CARDS GRID ── */
+  .cards-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px,1fr)); gap: 16px; }
+  .card {
+    background: var(--glass-bg);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid var(--glass-border);
+    border-radius: 12px;
+    padding: 22px 20px;
+    box-shadow: var(--glass-shadow);
+  }
+  .card-title {
+    font-size: .85rem;
+    font-weight: 700;
+    color: var(--text-main);
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .card-title .dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    background: var(--text-muted);
+  }
+  .card p { font-size: .92rem; color: var(--text-muted); line-height: 1.65; }
+  .card ul { padding-right: 18px; }
+  .card ul li { font-size: .9rem; color: var(--text-muted); margin-bottom: 6px; }
 
-    /* حذف الرسائل التي مضى عليها أكثر من 10 دقائق */
-    const TEN_MIN = 10 * 60 * 1000;
+  /* ── GATE CARDS ── */
+  .gate-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px,1fr)); gap: 14px; }
+  .gate-card {
+    background: var(--glass-bg);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid var(--glass-border);
+    box-shadow: var(--glass-shadow);
+    border-radius: 10px;
+    padding: 18px;
+    color: var(--text-main);
+    position: relative;
+    overflow: hidden;
+  }
+  .gate-card .gate-num { font-size: 2rem; font-weight: 900; opacity: .05; position: absolute; top: 8px; left: 16px; color: var(--text-main); }
+  .gate-card .gate-label { font-size: .78rem; color: var(--text-muted); margin-bottom: 4px; }
+  .gate-card .gate-title { font-size: 1rem; font-weight: 700; margin-bottom: 8px; color: var(--text-main); }
+  .gate-card .gate-badge {
+    display: inline-block;
+    background: var(--accent-light);
+    border: 1px solid var(--border-muted);
+    color: var(--text-main);
+    border-radius: 20px;
+    padding: 2px 10px;
+    font-size: .72rem;
+    font-weight: 600;
+  }
+  .gate-card ul { padding-right: 14px; margin-top: 8px; }
+  .gate-card ul li { font-size: .82rem; color: var(--text-muted); margin-bottom: 4px; }
 
-    async function deleteExpiredMessages() {
-      const snap = await getDocs(query(db, orderBy("timestamp", "asc")));
-      const now = Date.now();
-      const deletions = [];
-      snap.forEach(docSnap => {
-        const ts = docSnap.data().timestamp;
-        if (!ts) return;
-        const msgTime = ts.toMillis ? ts.toMillis() : ts;
-        if (now - msgTime > TEN_MIN)
-          deletions.push(deleteDoc(doc(getFirestore(app), "messages", docSnap.id)));
-      });
-      if (deletions.length) await Promise.all(deletions);
-    }
+  /* ── TIMELINE ── */
+  .timeline { display: flex; flex-direction: column; gap: 0; }
+  .timeline-item {
+    display: grid;
+    grid-template-columns: 60px 1fr;
+    gap: 0 18px;
+  }
+  .timeline-left {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .timeline-circle {
+    width: 44px; height: 44px;
+    border-radius: 50%;
+    background: var(--accent);
+    color: #ffffff;
+    display: grid;
+    place-items: center;
+    font-weight: 700;
+    font-size: .85rem;
+    flex-shrink: 0;
+    z-index: 1;
+  }
+  .timeline-line {
+    flex: 1;
+    width: 1px;
+    background: rgba(15, 23, 42, 0.1);
+    margin: 4px 0;
+  }
+  .timeline-item:last-child .timeline-line { display: none; }
+  .timeline-content {
+    background: var(--glass-bg);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid var(--glass-border);
+    box-shadow: var(--glass-shadow);
+    border-radius: 10px;
+    padding: 16px 18px;
+    margin-bottom: 16px;
+  }
+  .timeline-content h3 { font-size: 1rem; font-weight: 700; color: var(--text-main); margin-bottom: 6px; }
+  .timeline-content p, .timeline-content li { font-size: .88rem; color: var(--text-muted); }
+  .timeline-content ul { padding-right: 16px; }
+  .timeline-content ul li { margin-bottom: 4px; }
+  .day-badge {
+    display: inline-block;
+    background: var(--accent-light);
+    border: 1px solid var(--border-muted);
+    color: var(--text-main);
+    font-size: .7rem;
+    font-weight: 700;
+    padding: 2px 10px;
+    border-radius: 20px;
+    margin-bottom: 8px;
+  }
 
-    /* تشغيل الحذف فور فتح الصفحة ثم كل دقيقة */
-    deleteExpiredMessages();
-    setInterval(deleteExpiredMessages, 60 * 1000);
+  /* ── TABLE ── */
+  .table-wrap { overflow-x: auto; margin-top: 4px; }
+  table { width: 100%; border-collapse: collapse; font-size: .87rem; }
+  thead tr { background: var(--accent); color: #ffffff; }
+  thead th { padding: 11px 12px; text-align: right; font-weight: 600; font-size: .8rem; }
+  tbody tr { background: rgba(255, 255, 255, 0.25); border-bottom: 1px solid var(--border-muted); transition: background .15s; }
+  tbody tr:hover { background: rgba(255, 255, 255, 0.45); }
+  tbody td { padding: 10px 12px; color: var(--text-muted); vertical-align: middle; }
+  tbody td input[type="number"], tbody td input[type="text"], tbody td textarea, tbody td select {
+    width: 100%;
+    border: 1px solid rgba(15, 23, 42, 0.15);
+    border-radius: 6px;
+    padding: 6px 8px;
+    font-family: 'Cairo', sans-serif;
+    font-size: .83rem;
+    color: var(--text-main);
+    background: rgba(255, 255, 255, 0.5);
+    outline: none;
+    transition: all .2s;
+    direction: rtl;
+  }
+  tbody td input:focus, tbody td textarea:focus, tbody td select:focus {
+    border-color: var(--text-main);
+    background: #ffffff;
+  }
+  tbody td textarea { resize: vertical; min-height: 52px; }
+  tfoot tr { background: rgba(15, 23, 42, 0.05); }
+  tfoot td { padding: 10px 12px; font-weight: 700; font-size: .85rem; color: var(--text-main); }
+  .badge-gate {
+    display: inline-block;
+    padding: 2px 10px;
+    border-radius: 20px;
+    font-size: .72rem;
+    font-weight: 700;
+    color: var(--text-main);
+    background: var(--accent-light);
+    border: 1px solid var(--border-muted);
+  }
 
-    const inputEl = document.getElementById("msg-input");
-    const sendBtn = document.getElementById("send-btn");
-    const statusEl = document.getElementById("status");
+  /* ── KPI CARDS ── */
+  .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px; }
+  .kpi-card {
+    background: var(--glass-bg);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid var(--glass-border);
+    box-shadow: var(--glass-shadow);
+    border-radius: 10px;
+    padding: 18px;
+  }
+  .kpi-name { font-size: .78rem; font-weight: 700; color: var(--text-main); text-transform: uppercase; letter-spacing: .05em; margin-bottom: 4px; }
+  .kpi-formula { font-size: .85rem; color: var(--text-main); font-weight: 600; background: rgba(15, 23, 42, 0.05); padding: 6px 10px; border-radius: 6px; margin: 8px 0; direction: ltr; text-align: left; }
+  .kpi-desc { font-size: .8rem; color: var(--text-muted); }
 
-    async function sendMessage() {
-      const text = inputEl.value.trim();
-      if (!text) return;
-      if (text.length > 500) { showStatus("الرسالة طويلة جداً"); return; }
+  /* ── CHECKLIST ── */
+  .checklist { list-style: none; display: grid; grid-template-columns: repeat(auto-fit, minmax(260px,1fr)); gap: 8px; }
+  .checklist li {
+    background: var(--glass-bg);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid var(--glass-border);
+    box-shadow: var(--glass-shadow);
+    border-radius: 8px;
+    padding: 10px 14px;
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    font-size: .87rem;
+    color: var(--text-muted);
+  }
+  .checklist li::before {
+    content: '▪';
+    color: var(--text-main);
+    font-size: .9rem;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
 
-      sendBtn.disabled = true;
-      inputEl.disabled = true;
+  /* ── FORMULA BOX ── */
+  .formula-box {
+    background: rgba(15, 23, 42, 0.05);
+    color: var(--text-main);
+    border-radius: 10px;
+    border: 1px solid var(--border-muted);
+    padding: 20px 24px;
+    margin: 12px 0;
+    font-size: .95rem;
+    direction: ltr;
+    text-align: center;
+    letter-spacing: .02em;
+  }
+  .formula-box .formula { font-size: 1.1rem; font-weight: 700; color: var(--text-main); margin-top: 6px; }
 
-      try {
-        await enforceLimit();
-        await addDoc(db, { text, timestamp: serverTimestamp() });
-        inputEl.value = "";
-        showStatus("");
-      } catch (err) {
-        showStatus("فشل الإرسال");
-        console.error(err);
-      } finally {
-        sendBtn.disabled = false;
-        inputEl.disabled = false;
-        inputEl.focus();
-      }
-    }
+  /* ── MODAL / INPUT WINDOW ── */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.4);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    z-index: 200;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+  .modal-overlay.active { display: flex; }
+  .modal {
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.6);
+    border-radius: 16px;
+    width: 100%;
+    max-width: 680px;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 20px 60px rgba(0,0,0,.15);
+  }
+  .modal-header {
+    background: var(--accent);
+    color: #ffffff;
+    padding: 20px 24px;
+    border-radius: 15px 15px 0 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .modal-header h3 { font-size: 1.1rem; font-weight: 700; }
+  .modal-header .close-btn {
+    background: rgba(255, 255, 255, 0.15);
+    border: none;
+    color: white;
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 1rem;
+    display: grid;
+    place-items: center;
+    transition: background .2s;
+  }
+  .modal-header .close-btn:hover { background: rgba(255, 255, 255, .25); }
+  .modal-body { padding: 24px; }
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .form-group { display: flex; flex-direction: column; gap: 6px; }
+  .form-group.full { grid-column: 1 / -1; }
+  .form-group label { font-size: .82rem; font-weight: 600; color: var(--text-main); }
+  .form-group input, .form-group select, .form-group textarea {
+    border: 1px solid rgba(15, 23, 42, 0.15);
+    border-radius: 8px;
+    padding: 9px 12px;
+    font-family: 'Cairo', sans-serif;
+    font-size: .88rem;
+    color: var(--text-main);
+    background: rgba(255, 255, 255, 0.6);
+    outline: none;
+    transition: all .2s;
+    direction: rtl;
+  }
+  .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+    border-color: var(--text-main);
+    background: #ffffff;
+  }
+  .form-group textarea { min-height: 80px; resize: vertical; }
+  .modal-footer { padding: 16px 24px 24px; display: flex; gap: 12px; justify-content: flex-end; }
+  .btn {
+    padding: 10px 24px;
+    border-radius: 8px;
+    border: none;
+    font-family: 'Cairo', sans-serif;
+    font-size: .9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all .2s;
+  }
+  .btn-primary { background: var(--accent); color: #ffffff; }
+  .btn-primary:hover { background: #0f172a; }
+  .btn-secondary { background: rgba(15, 23, 42, 0.08); color: var(--text-main); }
+  .btn-secondary:hover { background: rgba(15, 23, 42, 0.15); }
+  .btn-gold { background: #475569; color: #ffffff; }
+  .btn-gold:hover { background: #334155; }
 
-    sendBtn.addEventListener("click", sendMessage);
-    inputEl.addEventListener("keydown", (e) => {
-      if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMessage(); }
-    });
+  /* ── FLOATING ACTION ── */
+  .fab {
+    position: fixed;
+    bottom: 28px;
+    left: 28px;
+    background: var(--accent);
+    color: #ffffff;
+    border: none;
+    border-radius: 50px;
+    padding: 14px 28px;
+    font-family: 'Cairo', sans-serif;
+    font-size: .9rem;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 10px 25px rgba(15, 23, 42, 0.15);
+    z-index: 150;
+    transition: all .2s;
+  }
+  .fab:hover { transform: translateY(-2px); background: #0f172a; box-shadow: 0 12px 30px rgba(15, 23, 42, 0.25); }
 
-    let statusTimer;
-    function showStatus(msg) {
-      statusEl.textContent = msg;
-      clearTimeout(statusTimer);
-      if (msg) statusTimer = setTimeout(() => { statusEl.textContent = ""; }, 3000);
-    }
-  </script>
+  /* ── PRINT / SUMMARY ── */
+  .summary-panel {
+    background: rgba(255, 255, 255, 0.35);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid var(--glass-border);
+    box-shadow: var(--glass-shadow);
+    border-radius: 14px;
+    padding: 28px;
+    color: var(--text-main);
+  }
+  .summary-panel h3 { color: var(--text-main); font-size: 1.1rem; margin-bottom: 16px; }
+  .summary-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px,1fr)); gap: 12px; }
+  .sum-item { background: rgba(15, 23, 42, 0.04); border: 1px solid var(--border-muted); border-radius: 8px; padding: 12px 14px; }
+  .sum-label { font-size: .72rem; color: var(--text-muted); margin-bottom: 4px; }
+  .sum-value { font-size: 1.15rem; font-weight: 700; color: var(--text-main); }
 
-  <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  /* ── PRINT ── */
+  @media print {
+    header, .fab, .modal-overlay { display: none !important; }
+    body { background: white; }
+    .card, .timeline-content, .kpi-card, .rec-card { box-shadow: none; border: 1px solid #DDD; background: none; backdrop-filter: none; }
+  }
 
-    :root {
-      --bg:       #0b0f1a;
-      --bg2:      #0f1629;
-      --fg:       #e8eaf6;
-      --dim:      #6b7db3;
-      --border:   #1e2d50;
-      --hover-bg: #131d33;
-      --btn-bg:   #1e2d50;
-      --btn-hover:#2a3f70;
-      --accent:   #4a6fa5;
-      --font:     -apple-system, "SF Pro Text", "SF Pro Display", "Helvetica Neue", Arial, sans-serif;
-      --radius:   18px;
-    }
-
-    html {
-      touch-action: manipulation;
-      -ms-touch-action: manipulation;
-      -webkit-text-size-adjust: 100%;
-    }
-
-    html, body {
-      height: 100%;
-      background: var(--bg);
-      color: var(--fg);
-      font-family: var(--font);
-      font-size: 1rem;
-      line-height: 1.5;
-      -webkit-font-smoothing: antialiased;
-      overflow: hidden;
-    }
-
-    #app {
-      display: flex;
-      flex-direction: column;
-      height: 100dvh;
-      max-width: 860px;
-      margin: 0 auto;
-    }
-
-    /* ── MESSAGES ── */
-    #messages {
-      flex: 1;
-      overflow-y: auto;
-      padding: 1rem 1rem 0.5rem;
-      display: flex;
-      flex-direction: column;
-      gap: 0.45rem;
-      scroll-behavior: smooth;
-    }
-
-    #messages::-webkit-scrollbar { width: 4px; }
-    #messages::-webkit-scrollbar-track { background: transparent; }
-    #messages::-webkit-scrollbar-thumb { background: var(--border); border-radius: 99px; }
-
-    #messages:empty::after {
-      content: "ابدأ المحادثة...";
-      color: var(--dim);
-      font-size: 0.9rem;
-      padding-top: 1.5rem;
-      display: block;
-      text-align: center;
-    }
-
-    /* ── MSG BUBBLE — بدون إطار ── */
-    .msg-line {
-      display: inline-flex;
-      align-self: flex-start;
-      background: transparent;
-      border: none;
-      padding: 0.15rem 0.4rem;
-      max-width: 90%;
-    }
-
-    .msg-text {
-      word-break: break-word;
-      white-space: pre-wrap;
-      color: var(--fg);
-      font-size: 1rem;
-    }
-
-    /* ── INPUT AREA ── */
-    #input-area {
-      flex-shrink: 0;
-      padding: 0.75rem 1rem 1rem;
-      display: flex;
-      flex-direction: column;
-      gap: 0.35rem;
-      background: var(--bg);
-    }
-
-    #input-row {
-      display: flex;
-      align-items: center;
-      gap: 0.6rem;
-    }
-
-    #msg-input {
-      flex: 1;
-      background: var(--bg2);
-      border: 1.5px solid var(--border);
-      border-radius: var(--radius);
-      outline: none;
-      color: var(--fg);
-      font-family: var(--font);
-      font-size: 1rem;
-      padding: 0.75em 1.1em;
-      -webkit-user-drag: none;
-      transition: border-color 0.15s;
-      min-height: 52px;
-    }
-
-    #msg-input:focus { border-color: var(--accent); }
-    #msg-input::placeholder { color: var(--dim); }
-    #msg-input:disabled { opacity: 0.5; cursor: not-allowed; }
-
-    /* ── SEND BUTTON ── */
-    #send-btn {
-      background: var(--btn-bg);
-      border: 1.5px solid var(--accent);
-      border-radius: 50%;
-      width: 52px;
-      height: 52px;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-shrink: 0;
-      transition: background 0.15s, transform 0.1s;
-    }
-
-    #send-btn:hover:not(:disabled) { background: var(--btn-hover); }
-    #send-btn:active:not(:disabled) { transform: scale(0.93); }
-    #send-btn:disabled { opacity: 0.35; cursor: not-allowed; }
-
-    #send-btn svg {
-      width: 22px;
-      height: 22px;
-      color: var(--fg);
-      stroke: var(--fg);
-    }
-
-    /* ── STATUS ── */
-    #status {
-      font-size: 0.75rem;
-      color: var(--dim);
-      padding-inline-start: 0.5rem;
-      min-height: 1em;
-    }
-
-    @media (max-width: 600px) {
-      #msg-input { font-size: 1rem; }
-    }
-
-    body { -webkit-user-drag: none; }
-  </style>
-
+  @media (max-width: 600px) {
+    .hero h1 { font-size: 1.4rem; }
+    .form-grid { grid-template-columns: 1fr; }
+    .hero-stats { gap: 20px; }
+    .hero-stat .n { font-size: 1.5rem; }
+  }
+</style>
 </head>
 <body>
-  <div id="app">
 
-<main id="messages" role="log" aria-live="polite"></main>
-
-<footer id="input-area">
-  <div id="input-row">
-    <input
-      id="msg-input"
-      type="text"
-      maxlength="500"
-      autocomplete="off"
-      autocorrect="off"
-      autocapitalize="off"
-      spellcheck="false"
-    />
-    <button id="send-btn" aria-label="إرسال">
-      <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-        <polyline points="5 15 12 8 19 15"/>
-      </svg>
-    </button>
+<header>
+  <div class="header-inner">
+    <div>
+      <div class="header-title">خطة البحث الميداني – حضانة اي ام سبيشل (فرع مركز المملكة / مرحلة استكشافية)</div>
+      <div class="header-sub">بحث ميداني (فرع مركز المملكة / مرحلة استكشافية) لقياس مستوى وعي زوار المركز بخدمات حضانة اي ام سبيشل</div>
+    </div>
+    <span class="header-badge">يونيو 2026 – إصدار تنفيذي</span>
   </div>
-  <span id="status" aria-live="assertive"></span>
-</footer>
+</header>
 
+<div class="hero">
+  <div class="hero-content">
+    <div class="hero-eyebrow">FIELD RESEARCH PLAN · خطة ميدانية</div>
+    <h1>قياس الوعي بـ<span>حضانة اي ام سبيشل</span><br>وتعظيم حصتها السوقية</h1>
+    <p>بحث ميداني لأربعة أيام (فرع مركز المملكة / مرحلة استكشافية) يقيس تدفق الأطفال عبر البوابات الأربع ويقارنه بإقبال حضانة اي ام سبيشل لاستخلاص مؤشرات أداء قابلة للتنفيذ.</p>
+    <div class="hero-stats">
+      <div class="hero-stat"><div class="n">4</div><div class="l">أيام ميدانية</div></div>
+      <div class="hero-stat"><div class="n">4</div><div class="l">بوابات مراقبة</div></div>
+      <div class="hero-stat"><div class="n">8+</div><div class="l">مؤشرات أداء</div></div>
+      <div class="hero-stat"><div class="n">2</div><div class="l">فريق الرصد (الباحث الميداني ومديرة الفرع)</div></div>
+    </div>
+  </div>
+</div>
 
+<div class="container">
+
+  <div class="section">
+    <div class="section-header">
+      <div class="section-num">01</div>
+      <h2>الملخص التنفيذي</h2>
+    </div>
+    <div class="summary-panel">
+      <h3>نظرة عامة على البحث الميداني</h3>
+      <p style="font-size:.92rem;color:var(--text-muted);line-height:1.75;margin-bottom:20px;">
+        يهدف هذا البحث الميداني إلى قياس مستوى الوعي بوجود حضانة اي ام سبيشل للأطفال داخل مركز المملكة، من خلال رصد وتحليل حركة الأطفال عبر البوابات الأربع للمركز ومقارنتها بأعداد الأطفال المسجلين فعلياً في حضانة اي ام سبيشل. كما يسعى البحث الميداني إلى تقدير الحصة السوقية لحضانة اي ام سبيشل مقارنةً بمراكز ألعاب الأطفال المنافسة داخل المركز، وتحديد فرص تحسين الوعي لدى الزوار القادمين من البوابتين 1 و2 اللتين لا تمران بالقرب من حضانة اي ام سبيشل مباشرة.
+      </p>
+      <div class="summary-grid">
+        <div class="sum-item"><div class="sum-label">مدة البحث الميداني</div><div class="sum-value">4 أيام</div></div>
+        <div class="sum-item"><div class="sum-label">ساعات المراقبة / يوم</div><div class="sum-value">ساعتان</div></div>
+        <div class="sum-item"><div class="sum-label">موقع حضانة اي ام سبيشل</div><div class="sum-value">الدور السفلي</div></div>
+        <div class="sum-item"><div class="sum-label">بوابات الوصول المباشر</div><div class="sum-value">3 و4</div></div>
+        <div class="sum-item"><div class="sum-label">بوابات غير مباشرة</div><div class="sum-value">1 & 2</div></div>
+        <div class="sum-item"><div class="sum-label">فريق الرصد</div><div class="sum-value">الباحث الميداني ومديرة الفرع</div></div>
+      </div>
+    </div>
   </div>
 
-  <script>
-    ["dragover", "dragenter", "drop"].forEach(evt => {
-      document.addEventListener(evt, e => { e.preventDefault(); e.stopPropagation(); });
+  <div class="section">
+    <div class="section-header">
+      <div class="section-num">02</div>
+      <h2>أهداف البحث الميداني</h2>
+    </div>
+    <div class="cards-grid">
+      <div class="card">
+        <div class="card-title"><span class="dot"></span>الهدف الرئيسي</div>
+        <p>قياس مستوى وعي زوار مركز المملكة بوجود خدمة حضانة اي ام سبيشل للأطفال، وتحديد نسبة الأطفال الذين يدخلون المركز ولا يصلون إلى حضانة اي ام سبيشل رغم توافر الفرصة.</p>
+      </div>
+      <div class="card">
+        <div class="card-title"><span class="dot"></span>الهدف الثانوي الأول</div>
+        <p>اكتشاف فجوة الوعي لدى الزوار القادمين من البوابتين 1 و2، ووضع توصيات عملية لتوجيههم نحو حضانة اي ام سبيشل.</p>
+      </div>
+      <div class="card">
+        <div class="card-title"><span class="dot"></span>الهدف الثانوي الثاني</div>
+        <p>تقدير الحصة السوقية لحضانة اي ام سبيشل من إجمالي الأطفال المتجهين لأنشطة الأطفال داخل المركز مقارنةً بمراكز الألعاب المنافسة.</p>
+      </div>
+      <div class="card">
+        <div class="card-title"><span class="dot"></span>الهدف الثالث</div>
+        <p>تقديم خطة توصيات تحسين قابلة للتطبيق لرفع معدل التحويل (conversion rate) من زائر إلى مشترك في خدمة حضانة اي ام سبيشل.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-header">
+      <div class="section-num">03</div>
+      <h2>خريطة البوابات وتصنيفها</h2>
+    </div>
+    <div class="gate-cards">
+      <div class="gate-card">
+        <div class="gate-num">1</div>
+        <div class="gate-label">اليوم الأول</div>
+        <div class="gate-title">البوابة رقم 1</div>
+        <span class="gate-badge">غير مباشرة</span>
+        <ul>
+          <li>لا تمر بالقرب من حضانة اي ام سبيشل</li>
+          <li>فجوة وعي مرتفعة</li>
+          <li>تحتاج تدخلاً توجيهياً</li>
+        </ul>
+      </div>
+      <div class="gate-card">
+        <div class="gate-num">2</div>
+        <div class="gate-label">اليوم الثاني</div>
+        <div class="gate-title">البوابة رقم 2</div>
+        <span class="gate-badge">غير مباشرة</span>
+        <ul>
+          <li>لا تمر بالقرب من حضانة اي ام سبيشل</li>
+          <li>فجوة وعي مرتفعة</li>
+          <li>أولوية قصوى للتحسين</li>
+        </ul>
+      </div>
+      <div class="gate-card">
+        <div class="gate-num">3</div>
+        <div class="gate-label">اليوم الثالث</div>
+        <div class="gate-title">البوابة رقم 3</div>
+        <span class="gate-badge">مباشرة</span>
+        <ul>
+          <li>وصول مباشر لحضانة اي ام سبيشل</li>
+          <li>خط الأساس للمقارنة</li>
+          <li>تحويل أعلى متوقع</li>
+        </ul>
+      </div>
+      <div class="gate-card">
+        <div class="gate-num">4</div>
+        <div class="gate-label">اليوم الثالث</div>
+        <div class="gate-title">البوابة رقم 4</div>
+        <span class="gate-badge">مباشرة</span>
+        <ul>
+          <li>وصول مباشر لحضانة اي ام سبيشل</li>
+          <li>خط الأساس للمقارنة</li>
+          <li>يُرصد مع البوابة 3</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-header">
+      <div class="section-num">04</div>
+      <h2>منهجية جمع البيانات</h2>
+    </div>
+    <div class="timeline">
+
+      <div class="timeline-item">
+        <div class="timeline-left">
+          <div class="timeline-circle">1</div>
+          <div class="timeline-line"></div>
+        </div>
+        <div class="timeline-content">
+          <div class="day-badge">اليوم الأول</div>
+          <h3>رصد البوابة رقم 1 – مدة ساعتين</h3>
+          <ul>
+            <li>يجلس الباحث الميداني في موقع مناسب مقابل البوابة بحيث يستطيع رصد جميع الداخلين.</li>
+            <li>يُعدّ الأطفال دون سن 10 سنوات الداخلين خلال فترة الرصد ويسجلهم كل 15 دقيقة.</li>
+            <li>في نفس الوقت تقوم مديرة الفرع بحصر عدد الأطفال الداخلين لحضانة اي ام سبيشل خلال نفس الفترة.</li>
+            <li>يُسجّل الباحث الميداني ملاحظات نوعية: اللوحات الإرشادية، سلوك الأسر، نقاط التجمع.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="timeline-item">
+        <div class="timeline-left">
+          <div class="timeline-circle">2</div>
+          <div class="timeline-line"></div>
+        </div>
+        <div class="timeline-content">
+          <div class="day-badge">اليوم الثاني</div>
+          <h3>رصد البوابة رقم 2 – مدة ساعتين</h3>
+          <ul>
+            <li>تُكرّر نفس المنهجية المُطبّقة في اليوم الأول بالضبط.</li>
+            <li>التنسيق المسبق مع مديرة الفرع لضمان توحيد فترة الرصد.</li>
+            <li>مقارنة نتيجة هذا اليوم مع اليوم الأول لاكتشاف الفرق بين البوابتين غير المباشرتين.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="timeline-item">
+        <div class="timeline-left">
+          <div class="timeline-circle">3</div>
+          <div class="timeline-line"></div>
+        </div>
+        <div class="timeline-content">
+          <div class="day-badge">اليوم الثالث</div>
+          <h3>رصد البوابتين 3 و4 معاً – مدة ساعتين</h3>
+          <ul>
+            <li>يتمركز الباحث الميداني في نقطة تُمكّنه من رصد كلتا البوابتين، أو يُستعان بباحث مساعد.</li>
+            <li>يُجمع العدد الكلي لكلتا البوابتين كرقم واحد لأنهما بوابتا الوصول المباشر.</li>
+            <li>هذا اليوم يُشكّل خط الأساس لمقارنة نسبة التحويل بين البوابات المباشرة وغير المباشرة.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="timeline-item">
+        <div class="timeline-left">
+          <div class="timeline-circle">4</div>
+          <div class="timeline-line"></div>
+        </div>
+        <div class="timeline-content">
+          <div class="day-badge">اليوم الرابع</div>
+          <h3>بحث ميداني للمنافسة وتقدير الحصة السوقية</h3>
+          <ul>
+            <li>حصر جميع مراكز ألعاب وأنشطة الأطفال داخل المركز.</li>
+            <li>رصد عدد الأطفال دون سن 10 سنوات الداخلين لكل مركز خلال فترة ساعتين.</li>
+            <li>رصد عدد الأطفال الداخلين لحضانة اي ام سبيشل في نفس الفترة.</li>
+            <li>احتساب الحصة السوقية لحضانة اي ام سبيشل من إجمالي أنشطة الأطفال داخل المركز.</li>
+          </ul>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-header">
+      <div class="section-num">05</div>
+      <h2>جدول العدّ الميداني – الباحث الميداني</h2>
+    </div>
+    <div class="card">
+      <div class="table-wrap">
+        <table id="researcher-table">
+          <thead>
+            <tr>
+              <th>البوابة</th>
+              <th>اليوم / التاريخ</th>
+              <th>وقت البدء</th>
+              <th>وقت الانتهاء</th>
+              <th>عدد الأطفال (0–15 د)</th>
+              <th>عدد الأطفال (15–30 د)</th>
+              <th>عدد الأطفال (30–45 د)</th>
+              <th>عدد الأطفال (45–60 د)</th>
+              <th>عدد الأطفال (60–75 د)</th>
+              <th>عدد الأطفال (75–90 د)</th>
+              <th>عدد الأطفال (90–105 د)</th>
+              <th>عدد الأطفال (105–120 د)</th>
+              <th>المجموع</th>
+              <th>ملاحظات</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><span class="badge-gate">بوابة 1</span></td>
+              <td><input type="text" placeholder="اليوم الأول"></td>
+              <td><input type="text" placeholder="00:00"></td>
+              <td><input type="text" placeholder="02:00"></td>
+              <td><input type="number" min="0" placeholder="0"></td>
+              <td><input type="number" min="0" placeholder="0"></td>
+              <td><input type="number" min="0" placeholder="0"></td>
+              <td><input type="number" min="0" placeholder="0"></td>
+              <td><input type="number" min="0" placeholder="0"></td>
+              <td><input type="number" min="0" placeholder="0"></td>
+              <td><input type="number" min="0" placeholder="0"></td>
+              <td><input type="number" min="0" placeholder="0"></td>
+              <td style="font-weight:700;color:var(--text-main)">–</td>
+              <td><textarea placeholder="ملاحظات..."></textarea></td>
+            </tr>
+            <tr>
+              <td><span class="badge-gate">بوابة 2</span></td>
+              <td><input type="text" placeholder="اليوم الثاني"></td>
+              <td><input type="text" placeholder="00:00"></td>
+              <td><input type="text" placeholder="02:00"></td>
+              <td><input type="number" min="0" placeholder="0"></td>
+              <td><input type="number" min="0" placeholder="0"></td>
+              <td><input type="number" min="0" placeholder="0"></td>
+              <td><input type="number" min="0" placeholder="0"></td>
+              <td><input type="number" min="0" placeholder="0"></td>
+              <td><input type="number" min="0" placeholder="0"></td>
+              <td><input type="number" min="0" placeholder="0"></td>
+              <td><input type="number" min="0" placeholder="0"></td>
+              <td style="font-weight:700;color:var(--text-main)">–</td>
+              <td><textarea placeholder="ملاحظات..."></textarea></td>
+            </tr>
+            <tr>
+              <td><span class="badge-gate">بوابة 3+4</span></td>
+              <td><input type="text" placeholder="اليوم الثالث"></td>
+              <td><input type="text" placeholder="00:00"></td>
+              <td><input type="text" placeholder="02:00"></td>
+              <td><input type="number" min="0" placeholder="0"></td>
+              <td><input type="number" min="0" placeholder="0"></td>
+              <td><input type="number" min="0" placeholder="0"></td>
+              <td><input type="number" min="0" placeholder="0"></td>
+              <td><input type="number" min="0" placeholder="0"></td>
+              <td><input type="number" min="0" placeholder="0"></td>
+              <td><input type="number" min="0" placeholder="0"></td>
+              <td><input type="number" min="0" placeholder="0"></td>
+              <td style="font-weight:700;color:var(--text-main)">–</td>
+              <td><textarea placeholder="ملاحظات..."></textarea></td>
+            </tr>
+          </tbody>
+          <tfoot>
+            <tr>
+              <td colspan="4">الإجمالي الكلي (3 أيام)</td>
+              <td colspan="8"></td>
+              <td id="grand-total">–</td>
+              <td></td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-header">
+      <div class="section-num">06</div>
+      <h2>جدول العدّ المتزامن – مديرة الفرع</h2>
+    </div>
+    <div class="card">
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>اليوم / التاريخ</th>
+              <th>الفترة الزمنية</th>
+              <th>عدد الأطفال المسجلين مسبقاً</th>
+              <th>عدد الأطفال الجدد (دخلوا خلال الرصد)</th>
+              <th>إجمالي الأطفال خلال الرصد</th>
+              <th>ملاحظات مديرة الفرع</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><input type="text" placeholder="اليوم الأول"></td>
+              <td><input type="text" placeholder="من ... إلى ..."></td>
+              <td><input type="number" min="0" placeholder="0"></td>
+              <td><input type="number" min="0" placeholder="0"></td>
+              <td><input type="number" min="0" placeholder="0"></td>
+              <td><textarea placeholder="ملاحظات..."></textarea></td>
+            </tr>
+            <tr>
+              <td><input type="text" placeholder="اليوم الثاني"></td>
+              <td><input type="text" placeholder="من ... إلى ..."></td>
+              <td><input type="number" min="0" placeholder="0"></td>
+              <td><input type="number" min="0" placeholder="0"></td>
+              <td><input type="number" min="0" placeholder="0"></td>
+              <td><textarea placeholder="ملاحظات..."></textarea></td>
+            </tr>
+            <tr>
+              <td><input type="text" placeholder="اليوم الثالث"></td>
+              <td><input type="text" placeholder="من ... إلى ..."></td>
+              <td><input type="number" min="0" placeholder="0"></td>
+              <td><input type="number" min="0" placeholder="0"></td>
+              <td><input type="number" min="0" placeholder="0"></td>
+              <td><textarea placeholder="ملاحظات..."></textarea></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-header">
+      <div class="section-num">07</div>
+      <h2>طريقة المقارنة: البوابات مقابل حضانة اي ام سبيشل</h2>
+    </div>
+    <div class="cards-grid">
+      <div class="card">
+        <div class="card-title"><span class="dot"></span>مؤشر التحويل لكل بوابة</div>
+        <div class="formula-box">
+          نسبة التحويل (بوابة X) =
+          <div class="formula">(أطفال حضانة اي ام سبيشل ÷ أطفال البوابة X) × 100%</div>
+        </div>
+        <p>تُحسب لكل بوابة على حدة وتُقارن مع خط الأساس (البوابتان 3 و4).</p>
+      </div>
+      <div class="card">
+        <div class="card-title"><span class="dot"></span>فجوة الوعي</div>
+        <div class="formula-box">
+          فجوة الوعي =
+          <div class="formula">نسبة تحويل (3+4) – نسبة تحويل (1 أو 2)</div>
+        </div>
+        <p>كلما كبرت الفجوة، زادت الحاجة لتدخل توجيهي عند البوابات غير المباشرة.</p>
+      </div>
+      <div class="card">
+        <div class="card-title"><span class="dot"></span>معدل الإشغال</div>
+        <div class="formula-box">
+          معدل الإشغال =
+          <div class="formula">(أطفال حضانة اي ام سبيشل ÷ الطاقة الاستيعابية) × 100%</div>
+        </div>
+        <p>يقيس مدى استغلال طاقة حضانة اي ام سبيشل ويُحدد هامش النمو المتاح.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-header">
+      <div class="section-num">08</div>
+      <h2>مؤشرات الأداء الرئيسية (KPIs)</h2>
+    </div>
+    <div class="kpi-grid">
+      <div class="kpi-card">
+        <div class="kpi-name">معدل التحويل الإجمالي</div>
+        <div class="kpi-formula">(∑ أطفال حضانة اي ام سبيشل ÷ ∑ أطفال الكل) × 100</div>
+        <div class="kpi-desc">النسبة المئوية للأطفال الداخلين للمركز الذين يصلون إلى حضانة اي ام سبيشل.</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-name">فجوة التحويل بين البوابات</div>
+        <div class="kpi-formula">معدل (3+4) – معدل (1+2)</div>
+        <div class="kpi-desc">الفرق بين نسبة التحويل من البوابات المباشرة وغير المباشرة.</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-name">الحصة السوقية لحضانة اي ام سبيشل</div>
+        <div class="kpi-formula">(أطفال حضانة اي ام سبيشل ÷ إجمالي أطفال الأنشطة) × 100</div>
+        <div class="kpi-desc">نسبة حضانة اي ام سبيشل من السوق الكلي لأنشطة الأطفال داخل المركز.</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-name">معدل الإشغال اليومي</div>
+        <div class="kpi-formula">(أطفال فعليون ÷ طاقة استيعابية) × 100</div>
+        <div class="kpi-desc">يقيس مدى استغلال الطاقة ويُحدد هامش النمو.</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-name">معدل تذبذب الإقبال</div>
+        <div class="kpi-formula">الانحراف المعياري ÷ المتوسط × 100</div>
+        <div class="kpi-desc">يقيس مدى اتساق الأعداد اليومية ويكشف عوامل التذبذب.</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-name">الفرصة الضائعة (بوابة 1+2)</div>
+        <div class="kpi-formula">أطفال (1+2) × (نسبة تحويل 3+4 – نسبة 1+2)</div>
+        <div class="kpi-desc">عدد الأطفال الذي كان يمكن تحويله لو عُلّجت فجوة الوعي.</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-name">مؤشر تعدد الإشارات الإرشادية</div>
+        <div class="kpi-formula">عدد اللوحات الواضحة × معامل الموقع</div>
+        <div class="kpi-desc">تقييم كفاءة الدلالة البصرية الموجّهة نحو حضانة اي ام سبيشل.</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-name">نسبة إقبال الأسر مع الأطفال</div>
+        <div class="kpi-formula">(أسر مع أطفال ÷ إجمالي الأسر) × 100</div>
+        <div class="kpi-desc">يقيس حجم الشريحة المستهدفة المحتملة من إجمالي الزوار.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-header">
+      <div class="section-num">09</div>
+      <h2>آلية احتساب الحصة السوقية – اليوم الرابع</h2>
+    </div>
+    <div class="card">
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>المنشأة / المركز</th>
+              <th>النوع</th>
+              <th>عدد الأطفال خلال ساعتين</th>
+              <th>الحصة من الإجمالي (%)</th>
+              <th>ملاحظات</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td style="font-weight:700;">حضانة اي ام سبيشل</td>
+              <td>حضانة</td>
+              <td><input type="number" min="0" placeholder="0"></td>
+              <td style="font-weight:700;color:var(--text-main)">–</td>
+              <td><input type="text" placeholder="..."></td>
+            </tr>
+            <tr>
+              <td><input type="text" placeholder="اسم المركز الأول"></td>
+              <td><input type="text" placeholder="ألعاب / ترفيه"></td>
+              <td><input type="number" min="0" placeholder="0"></td>
+              <td style="font-weight:700;color:var(--text-main)">–</td>
+              <td><input type="text" placeholder="..."></td>
+            </tr>
+            <tr>
+              <td><input type="text" placeholder="اسم المركز الثاني"></td>
+              <td><input type="text" placeholder="ألعاب / ترفيه"></td>
+              <td><input type="number" min="0" placeholder="0"></td>
+              <td style="font-weight:700;color:var(--text-main)">–</td>
+              <td><input type="text" placeholder="..."></td>
+            </tr>
+            <tr>
+              <td><input type="text" placeholder="اسم المركز الثالث"></td>
+              <td><input type="text" placeholder="ألعاب / ترفيه"></td>
+              <td><input type="number" min="0" placeholder="0"></td>
+              <td style="font-weight:700;color:var(--text-main)">–</td>
+              <td><input type="text" placeholder="..."></td>
+            </tr>
+          </tbody>
+          <tfoot>
+            <tr>
+              <td colspan="2">الإجمالي</td>
+              <td>–</td>
+              <td>100%</td>
+              <td></td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+      <div style="margin-top:16px">
+        <div class="formula-box" style="text-align:right;direction:rtl">
+          الحصة السوقية لحضانة اي ام سبيشل =
+          <div class="formula" style="direction:ltr;text-align:center">
+            (أطفال حضانة اي ام سبيشل ÷ ∑ أطفال جميع مراكز الأطفال) × 100
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-header">
+      <div class="section-num">10</div>
+      <h2>قائمة الملاحظات الميدانية الواجبة التسجيل</h2>
+    </div>
+    <ul class="checklist">
+      <li>توثيق موقع وعدد وحجم اللوحات الإرشادية عند كل بوابة</li>
+      <li>تقييم وضوح اللوحات الإرشادية (مرئية / مخفية / مشوّشة)</li>
+      <li>رصد مسارات حركة الأسر بعد دخولها من كل بوابة</li>
+      <li>تحديد نقاط التجمع الطبيعية للزوار عند كل بوابة</li>
+      <li>سلوك الأسر مع الأطفال (هل يبحثون عن حضانة اي ام سبيشل؟)</li>
+      <li>تسجيل وجود عروض ترويجية مرئية لحضانة اي ام سبيشل على مسارات الدخول</li>
+      <li>رصد الفئة العمرية الغالبة للأطفال الداخلين (رضّع / أطفال صغار)</li>
+      <li>ملاحظة هل يُوجّه موظفو الأمن أو الاستقبال الزوار نحو حضانة اي ام سبيشل</li>
+      <li>تسجيل أي عقبات فيزيائية تحول دون الوصول لحضانة اي ام سبيشل من الدور السفلي</li>
+      <li>رصد المسافة والوقت المقدّر من كل بوابة لحضانة اي ام سبيشل</li>
+      <li>توثيق وجود شاشات إعلانية رقمية وهل تُذكر حضانة اي ام سبيشل فيها</li>
+      <li>ملاحظة ازدحام المسارات خلال فترة الذروة</li>
+      <li>تسجيل أي مستجدات مؤثرة (فعاليات، إغلاق مسالك، صيانة)</li>
+      <li>توثيق حالة الطقس والتأثير المحتمل على كثافة الزوار</li>
+      <li>رصد أنواع الأنشطة التنافسية القريبة من حضانة اي ام سبيشل</li>
+      <li>ملاحظة هل ثمة إشارات بصرية واضحة تربط البوابات بالدور السفلي</li>
+    </ul>
+  </div>
+
+  <div class="section">
+    <div class="section-header">
+      <div class="section-num">11</div>
+      <h2>الخطة التنفيذية النهائية</h2>
+    </div>
+    <div class="card">
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>اليوم</th>
+              <th>المهمة</th>
+              <th>المسؤول</th>
+              <th>الوقت</th>
+              <th>المخرج</th>
+              <th>الحالة</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><span class="badge-gate">يوم 1</span></td>
+              <td>رصد البوابة 1 – عد الأطفال كل 15 دقيقة</td>
+              <td>الباحث الميداني</td>
+              <td>ساعتان متفق عليهما</td>
+              <td>جدول بيانات مكتمل + ملاحظات نوعية</td>
+              <td>
+                <select>
+                  <option>لم يبدأ</option>
+                  <option>قيد التنفيذ</option>
+                  <option>مكتمل</option>
+                </select>
+              </td>
+            </tr>
+            <tr>
+              <td><span class="badge-gate">يوم 1</span></td>
+              <td>حصر أطفال حضانة اي ام سبيشل في نفس الفترة</td>
+              <td>مديرة الفرع</td>
+              <td>نفس وقت الباحث الميداني</td>
+              <td>سجل يومي لحضانة اي ام سبيشل</td>
+              <td>
+                <select>
+                  <option>لم يبدأ</option>
+                  <option>قيد التنفيذ</option>
+                  <option>مكتمل</option>
+                </select>
+              </td>
+            </tr>
+            <tr>
+              <td><span class="badge-gate">يوم 2</span></td>
+              <td>رصد البوابة 2 – تكرار المنهجية</td>
+              <td>الباحث الميداني</td>
+              <td>ساعتان</td>
+              <td>جدول بيانات + مقارنة يوم 1</td>
+              <td>
+                <select>
+                  <option>لم يبدأ</option>
+                  <option>قيد التنفيذ</option>
+                  <option>مكتمل</option>
+                </select>
+              </td>
+            </tr>
+            <tr>
+              <td><span class="badge-gate">يوم 2</span></td>
+              <td>حصر أطفال حضانة اي ام سبيشل في نفس الفترة</td>
+              <td>مديرة الفرع</td>
+              <td>نفس وقت الباحث الميداني</td>
+              <td>سجل يومي لحضانة اي ام سبيشل</td>
+              <td>
+                <select>
+                  <option>لم يبدأ</option>
+                  <option>قيد التنفيذ</option>
+                  <option>مكتمل</option>
+                </select>
+              </td>
+            </tr>
+            <tr>
+              <td><span class="badge-gate">يوم 3</span></td>
+              <td>رصد البوابتين 3 و4 معاً</td>
+              <td>الباحث الميداني (+ مساعد إن أمكن)</td>
+              <td>ساعتان</td>
+              <td>خط الأساس للمقارنة</td>
+              <td>
+                <select>
+                  <option>لم يبدأ</option>
+                  <option>قيد التنفيذ</option>
+                  <option>مكتمل</option>
+                </select>
+              </td>
+            </tr>
+            <tr>
+              <td><span class="badge-gate">يوم 4</span></td>
+              <td>رصد مراكز المنافسة وتقدير الحصة السوقية</td>
+              <td>الباحث الميداني</td>
+              <td>ساعتان</td>
+              <td>جدول المنافسة + نسب الحصة</td>
+              <td>
+                <select>
+                  <option>لم يبدأ</option>
+                  <option>قيد التنفيذ</option>
+                  <option>مكتمل</option>
+                </select>
+              </td>
+            </tr>
+            <tr>
+              <td style="background:rgba(15, 23, 42, 0.03);font-weight:700">ما بعد</td>
+              <td>تحليل البيانات وإعداد التقرير النهائي</td>
+              <td>الباحث الميداني + المستشار</td>
+              <td>يومان</td>
+              <td>تقرير شامل + توصيات تنفيذية</td>
+              <td>
+                <select>
+                  <option>لم يبدأ</option>
+                  <option>قيد التنفيذ</option>
+                  <option>مكتمل</option>
+                </select>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<button class="fab" onclick="document.getElementById('inputModal').classList.add('active')">
+  بدء العمل
+</button>
+
+<div class="modal-overlay" id="inputModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>نافذة إدخال بيانات البحث الميداني</h3>
+      <button class="close-btn" onclick="document.getElementById('inputModal').classList.remove('active')">✕</button>
+    </div>
+    <div class="modal-body">
+      <p style="font-size:.85rem;color:var(--text-muted);margin-bottom:20px;background:rgba(15, 23, 42, 0.04);padding:10px 14px;border-radius:8px;border:1px solid var(--border-muted)">
+        أدخل البيانات التفصيلية لكل يوم من أيام البحث الميداني. يمكنك حفظها وطباعتها مع التقرير.
+      </p>
+
+      <div class="form-group" style="margin-bottom:20px;">
+        <label>اختر اليوم</label>
+        <select id="daySelector" onchange="switchDay(this.value)">
+          <option value="1">اليوم الأول – البوابة 1</option>
+          <option value="2">اليوم الثاني – البوابة 2</option>
+          <option value="3">اليوم الثالث – البوابتان 3 و4</option>
+          <option value="4">اليوم الرابع – دراسة المنافسة</option>
+        </select>
+      </div>
+
+      <div class="form-grid">
+        <div class="form-group">
+          <label>تاريخ الرصد</label>
+          <input type="date" id="inp-date">
+        </div>
+        <div class="form-group">
+          <label>وقت البدء</label>
+          <input type="time" id="inp-start">
+        </div>
+        <div class="form-group">
+          <label>وقت الانتهاء</label>
+          <input type="time" id="inp-end">
+        </div>
+        <div class="form-group">
+          <label>اسم الباحث</label>
+          <input type="text" id="inp-researcher" placeholder="الاسم الكامل">
+        </div>
+        <div class="form-group">
+          <label>إجمالي الأطفال المرصودين عند البوابة</label>
+          <input type="number" id="inp-gate-total" min="0" placeholder="0">
+        </div>
+        <div class="form-group">
+          <label>عدد الأطفال في حضانة اي ام سبيشل (نفس الفترة)</label>
+          <input type="number" id="inp-nursery-total" min="0" placeholder="0">
+        </div>
+        <div class="form-group">
+          <label>الطاقة الاستيعابية لحضانة اي ام سبيشل</label>
+          <input type="number" id="inp-capacity" min="0" placeholder="0">
+        </div>
+        <div class="form-group">
+          <label>حالة اللوحات الإرشادية</label>
+          <select id="inp-signs">
+            <option value="">اختر...</option>
+            <option>واضحة ومرئية جيداً</option>
+            <option>موجودة لكن غير واضحة</option>
+            <option>غير موجودة</option>
+            <option>مخفية / محجوبة</option>
+          </select>
+        </div>
+        <div class="form-group full">
+          <label>ملاحظات سلوك الأسر</label>
+          <textarea id="inp-behavior" placeholder="صِف كيف تتصرف الأسر مع الأطفال عند الدخول، هل يبحثون؟ هل يسألون؟"></textarea>
+        </div>
+        <div class="form-group full">
+          <label>ملاحظات ميدانية إضافية</label>
+          <textarea id="inp-notes" placeholder="أي ملاحظات نوعية أخرى: مسارات الحركة، نقاط الازدحام، مقترحات..."></textarea>
+        </div>
+      </div>
+
+      <div id="live-calc" style="display:none;margin-top:16px;background:var(--accent);color:white;border-radius:10px;padding:16px 20px;">
+        <div style="font-size:.8rem;opacity:.7;margin-bottom:8px;">الحسابات الفورية</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+          <div>
+            <div style="font-size:.75rem;opacity:.6;">نسبة التحويل</div>
+            <div id="calc-conversion" style="font-size:1.4rem;font-weight:900;color:#ffffff;">–</div>
+          </div>
+          <div>
+            <div style="font-size:.75rem;opacity:.6;">معدل الإشغال</div>
+            <div id="calc-occupancy" style="font-size:1.4rem;font-weight:900;color:#ffffff;">–</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="document.getElementById('inputModal').classList.remove('active')">إغلاق</button>
+      <button class="btn btn-gold" onclick="calculateLive()">احسب الآن</button>
+      <button class="btn btn-primary" onclick="saveEntry()">حفظ البيانات</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Live calculation
+  function calculateLive() {
+    const gateTotal = parseInt(document.getElementById('inp-gate-total').value) || 0;
+    const nurseryTotal = parseInt(document.getElementById('inp-nursery-total').value) || 0;
+    const capacity = parseInt(document.getElementById('inp-capacity').value) || 0;
+
+    const calc = document.getElementById('live-calc');
+    calc.style.display = 'block';
+    
+    if (gateTotal > 0) {
+      const conv = ((nurseryTotal / gateTotal) * 100).toFixed(1);
+      document.getElementById('calc-conversion').textContent = conv + '%';
+    } else {
+      document.getElementById('calc-conversion').textContent = '–';
+    }
+
+    if (capacity > 0) {
+      const occ = ((nurseryTotal / capacity) * 100).toFixed(1);
+      document.getElementById('calc-occupancy').textContent = occ + '%';
+    } else {
+      document.getElementById('calc-occupancy').textContent = '–';
+    }
+  }
+
+  function switchDay(val) {
+    document.getElementById('live-calc').style.display = 'none';
+  }
+
+  // Save to localStorage-equivalent (in-page storage)
+  const savedData = {};
+  function saveEntry() {
+    const day = document.getElementById('daySelector').value;
+    savedData[day] = {
+      date: document.getElementById('inp-date').value,
+      start: document.getElementById('inp-start').value,
+      end: document.getElementById('inp-end').value,
+      researcher: document.getElementById('inp-researcher').value,
+      gateTotal: document.getElementById('inp-gate-total').value,
+      nurseryTotal: document.getElementById('inp-nursery-total').value,
+      capacity: document.getElementById('inp-capacity').value,
+      signs: document.getElementById('inp-signs').value,
+      behavior: document.getElementById('inp-behavior').value,
+      notes: document.getElementById('inp-notes').value,
+    };
+    calculateLive();
+    const btn = event.target;
+    const orig = btn.textContent;
+    btn.textContent = 'تم الحفظ!';
+    btn.style.background = '#475569';
+    btn.style.color = 'white';
+    setTimeout(() => { btn.textContent = orig; btn.style.background = ''; btn.style.color = ''; }, 1800);
+  }
+
+  // Auto-sum rows in researcher table
+  document.querySelectorAll('#researcher-table tbody tr').forEach(row => {
+    const inputs = row.querySelectorAll('td input[type="number"]');
+    inputs.forEach(inp => {
+      inp.addEventListener('input', () => {
+        let sum = 0;
+        inputs.forEach(i => sum += parseInt(i.value) || 0);
+        row.querySelector('td:nth-child(13)').textContent = sum || '–';
+      });
     });
-  </script>
+  });
 
+  // Close modal on overlay click
+  document.getElementById('inputModal').addEventListener('click', function(e) {
+    if (e.target === this) this.classList.remove('active');
+  });
+</script>
 </body>
 </html>
