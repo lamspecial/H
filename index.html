@@ -156,6 +156,7 @@
           <button onclick="exportCSV()">تصدير اكسل</button>
           <button onclick="exportTXT()">تصدير تقرير</button>
           <button onclick="document.getElementById('importFile').click()">استيراد البيانات</button>
+          <button onclick="openTextImportModal()">استيراد نصي</button>
         </div>
       </div>
       <input type="file" id="importFile" accept=".xlsx,.xls,.csv" style="display:none" onchange="handleImport(event)">
@@ -268,6 +269,34 @@
       <button onclick="psRedirect2()" style="flex:1;color:#fff;background:var(--teal);border:none;padding:8px;border-radius:8px;font-weight:bold;cursor:pointer;font-family:'Cairo';">طلب انتباه العاملة</button>
     </div>
     <button class="btn-s" style="width:100%;margin-top:16px;padding:10px;border-radius:12px;cursor:pointer;" onclick="document.getElementById('post-save-modal').style.display='none'">إغلاق</button>
+  </div>
+</div>
+
+<!-- Text Import Modal -->
+<div id="text-import-modal" style="display:none;position:fixed;inset:0;background:rgba(15,23,42,0.6);backdrop-filter:blur(4px);z-index:10000;align-items:center;justify-content:center;padding:20px;">
+  <div style="background:var(--white);border-radius:24px;padding:24px;width:100%;max-width:560px;box-shadow:0 10px 40px rgba(0,0,0,0.15);max-height:90vh;overflow-y:auto;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;border-bottom:2px solid var(--al);padding-bottom:12px;">
+      <h3 style="font-family:'Tajawal',sans-serif;font-size:17px;font-weight:800;color:var(--text);">استيراد نصي</h3>
+      <button onclick="closeTextImportModal()" style="background:none;border:none;cursor:pointer;font-size:20px;color:var(--t2);line-height:1;">×</button>
+    </div>
+    <div style="font-size:12px;color:var(--t2);line-height:1.9;background:#f8fafc;border:1px solid var(--border);border-radius:12px;padding:10px 14px;margin-bottom:12px;">
+      كل مكالمة 9 أسطر بالترتيب: الجوال، الجنس، الجنسية، نوع المكالمة، الموضوع، عدد الأطفال، الموقع، مشاعر العميل، ملخص المكالمة.
+      اترك سطراً فارغاً للوسم غير المتوفر، وافصل بين كل مكالمة وأخرى بسطر فارغ. الجوال وملخص المكالمة إلزاميان.
+    </div>
+    <textarea id="textImportArea" class="fta" placeholder="0559905345
+رجل
+سعودي
+استفسار
+السعر
+3 اطفال
+السيارة
+ايجابي
+كم مرة يمكن الدخول والخروج بنفس الساعة" style="min-height:220px;font-family:'Cairo',sans-serif;direction:rtl;"></textarea>
+    <div id="textImportPreview" style="display:none;margin-top:12px;font-size:12px;line-height:1.8;background:#f8fafc;border:1px solid var(--border);border-radius:12px;padding:10px 14px;max-height:220px;overflow-y:auto;"></div>
+    <div style="display:flex;gap:8px;margin-top:16px;">
+      <button class="btn-s" style="flex:1;padding:10px;border-radius:12px;" onclick="previewTextImport()">معاينة</button>
+      <button class="btn-p" id="textImportConfirmBtn" style="flex:1;padding:10px;border-radius:12px;display:none;" onclick="confirmTextImport()">تأكيد الاستيراد</button>
+    </div>
   </div>
 </div>
 

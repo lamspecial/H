@@ -1535,6 +1535,243 @@ window.handleImport = async function (event) {
   event.target.value = '';
 };
 
+// ===== TEXT IMPORT (لصق نصي لمكالمة واحدة أو عدة مكالمات) =====
+// ترتيب الأسطر داخل كل كتلة: 0=الجوال 1=الجنس 2=الجنسية 3=نوع المكالمة
+// 4=الموضوع 5=عدد الأطفال 6=الموقع 7=مشاعر العميل 8=ملخص المكالمة
+window.TEXT_IMPORT_FIELD_COUNT = 9;
+
+// مطابقة مرنة: نطابق النص المُدخل (بعد تطبيع المسافات والتشكيل البسيط)
+// مع أقرب خيار من قائمة معتمدة في الإعدادات window.S، وإن لم نجد تطابقاً
+// نُرجع القيمة الحرفية كما كتبها المستخدم بدل رفضها.
+window.normalizeArabicText = function (s) {
+  return String(s || '')
+    .trim()
+    .replace(/[\u064B-\u0652]/g, '') // إزالة التشكيل
+    .replace(/أ|إ|آ/g, 'ا')
+    .replace(/ة/g, 'ه')
+    .replace(/ى/g, 'ي')
+    .replace(/\s+/g, ' ')
+    .toLowerCase();
+};
+
+window.fuzzyMatchOption = function (input, options) {
+  const raw = String(input || '').trim();
+  if (!raw) return '';
+  const norm = window.normalizeArabicText(raw);
+  // تطابق تام أولاً
+  let hit = options.find(o => window.normalizeArabicText(o) === norm);
+  if (hit) return hit;
+  // تطابق احتوائي (الإدخال يحتوي على الخيار أو العكس)
+  hit = options.find(o => {
+    const on = window.normalizeArabicText(o);
+    return norm.includes(on) || on.includes(norm);
+  });
+  if (hit) return hit;
+  return raw; // لا تطابق: نحتفظ بالنص كما كتبه المستخدم
+};
+
+// مطابقة الجنس: يدعم "رجل/ذكر/راجل" و "امرأة/مرأة/أنثى/ست" بالإضافة للقيم الرسمية
+window.matchGender = function (input) {
+  const norm = window.normalizeArabicText(input);
+  if (!norm) return '';
+  const maleWords = ['ذكر', 'رجل', 'راجل', 'ابو', 'اب', 'm', 'male'];
+  const femaleWords = ['انثي', 'انثى', 'امراه', 'مراه', 'ست', 'سيده', 'ام', 'f', 'female'];
+  if (maleWords.some(w => norm === window.normalizeArabicText(w) || norm.includes(window.normalizeArabicText(w)))) return 'ذكر';
+  if (femaleWords.some(w => norm === window.normalizeArabicText(w) || norm.includes(window.normalizeArabicText(w)))) return 'أنثى';
+  return '';
+};
+
+// مطابقة عدد الأطفال: يدعم أرقام ("3" أو "3 اطفال") والكلمات العربية (طفل/طفلين/ثلاثة...)
+window.matchChildCount = function (input) {
+  const raw = String(input || '').trim();
+  if (!raw) return '';
+  const norm = window.normalizeArabicText(raw);
+  const numMatch = norm.match(/\d+/);
+  if (numMatch) {
+    const n = parseInt(numMatch[0], 10);
+    if (n === 1) return 'طفل';
+    if (n === 2) return 'طفلين';
+    if (n === 3) return 'ثلاثة';
+    if (n === 4) return 'أربعة';
+    if (n === 5) return 'خمسة';
+    if (n >= 6) return 'أكثر';
+  }
+  // كلمات نصية مباشرة من CHILD_OPTS أو مرادفات شائعة
+  const wordMap = {
+    'طفل': 'طفل', 'واحد': 'طفل',
+    'طفلين': 'طفلين', 'اثنين': 'طفلين',
+    'ثلاثه': 'ثلاثة', 'ثلاثة': 'ثلاثة',
+    'اربعه': 'أربعة', 'أربعة': 'أربعة',
+    'خمسه': 'خمسة', 'خمسة': 'خمسة',
+    'اكثر': 'أكثر', 'أكثر': 'أكثر'
+  };
+  // FIX: مطابقة تامة أولاً، ثم احتوائي مرتب من الأطول للأقصر — لمنع
+  // تطابق "طفل" بالخطأ ضمن "طفلين" (لأن الأولى substring من الثانية)
+  let exact = Object.keys(wordMap).find(k => window.normalizeArabicText(k) === norm);
+  if (exact) return wordMap[exact];
+  const sortedKeys = Object.keys(wordMap).sort((a, b) => b.length - a.length);
+  for (const k of sortedKeys) {
+    if (norm.includes(window.normalizeArabicText(k))) return wordMap[k];
+  }
+  return window.fuzzyMatchOption(raw, CHILD_OPTS);
+};
+
+// تحليل كتلة واحدة (9 أسطر) إلى رقم/تحقق + رصد الحقول المطابقة
+window.parseTextImportBlock = function (lines) {
+  while (lines.length < window.TEXT_IMPORT_FIELD_COUNT) lines.push('');
+  const [phoneRaw, genderRaw, natRaw, ctypeRaw, topicRaw, childRaw, locRaw, emoRaw, notesRaw] = lines.map(l => (l || '').trim());
+
+  const phone = phoneRaw.replace(/[^\d]/g, '');
+  const notes = notesRaw;
+
+  if (!phone || !notes) {
+    return { ok: false, reason: !phone ? 'رقم الجوال مفقود' : 'ملخص المكالمة مفقود', raw: lines };
+  }
+
+  const gender = window.matchGender(genderRaw);
+  const nat = natRaw ? window.fuzzyMatchOption(natRaw, window.S.nat) : '';
+  const ctype = ctypeRaw ? window.fuzzyMatchOption(ctypeRaw, window.S.ctypes) : '';
+  let topic = '';
+  if (topicRaw) {
+    const topicOptions = ctype && window.S.topicMap[ctype] ? window.S.topicMap[ctype] : [];
+    topic = topicOptions.length ? window.fuzzyMatchOption(topicRaw, topicOptions) : topicRaw;
+  }
+  const child = childRaw ? window.matchChildCount(childRaw) : '';
+  const loc = locRaw ? window.fuzzyMatchOption(locRaw, window.S.locs) : '';
+  const emo = emoRaw ? window.fuzzyMatchOption(emoRaw, window.S.emos) : '';
+
+  return {
+    ok: true,
+    rec: {
+      phone, gender, nat, ctype, topic, child, loc, emo, notes,
+      compNo: '', reqNo: ''
+    }
+  };
+};
+
+// تقسيم النص الكامل إلى كتل مفصولة بسطر/أسطر فارغة، كل كتلة = مكالمة واحدة
+window.splitTextImportBlocks = function (text) {
+  const lines = String(text || '').replace(/\r/g, '').split('\n');
+  const blocks = [];
+  let current = [];
+  lines.forEach(line => {
+    if (line.trim() === '' && current.some(l => l.trim() !== '')) {
+      // سطر فارغ بعد محتوى فعلي = نهاية كتلة، لكن نسمح بأسطر فارغة داخلية
+      // فقط إذا اكتملت الكتلة (9 أسطر فأكثر) أو وصلنا لفاصل صريح بين مكالمتين
+      if (current.length >= window.TEXT_IMPORT_FIELD_COUNT) {
+        blocks.push(current);
+        current = [];
+        return;
+      }
+    }
+    if (line.trim() === '' && current.length === 0) return; // تجاهل الأسطر الفارغة بين الكتل
+    current.push(line);
+  });
+  if (current.some(l => l.trim() !== '')) blocks.push(current);
+  // FIX: لا نقطع الأسطر الزائدة عن 9 بصمت — ندمجها في حقل الملاحظات الأخير
+  // (مفيد لو كتب المستخدم ملخص المكالمة على أكثر من سطر بدون قصد فصل جديد)
+  return blocks.map(b => {
+    if (b.length <= window.TEXT_IMPORT_FIELD_COUNT) return b;
+    const head = b.slice(0, window.TEXT_IMPORT_FIELD_COUNT - 1);
+    const mergedNotes = b.slice(window.TEXT_IMPORT_FIELD_COUNT - 1).join('\n');
+    return [...head, mergedNotes];
+  });
+};
+
+window.textImportParsedResults = [];
+
+window.openTextImportModal = function () {
+  const modal = document.getElementById('text-import-modal');
+  const area = document.getElementById('textImportArea');
+  const preview = document.getElementById('textImportPreview');
+  const confirmBtn = document.getElementById('textImportConfirmBtn');
+  if (area) area.value = '';
+  if (preview) { preview.style.display = 'none'; preview.innerHTML = ''; }
+  if (confirmBtn) confirmBtn.style.display = 'none';
+  window.textImportParsedResults = [];
+  if (modal) modal.style.display = 'flex';
+};
+window.closeTextImportModal = function () {
+  const modal = document.getElementById('text-import-modal');
+  if (modal) modal.style.display = 'none';
+};
+
+window.previewTextImport = function () {
+  const area = document.getElementById('textImportArea');
+  const preview = document.getElementById('textImportPreview');
+  const confirmBtn = document.getElementById('textImportConfirmBtn');
+  if (!area || !preview) return;
+  const blocks = window.splitTextImportBlocks(area.value);
+  if (!blocks.length) {
+    preview.style.display = 'block';
+    preview.innerHTML = '<div style="color:var(--red);font-weight:700;">لم يتم العثور على أي بيانات صالحة للمعاينة</div>';
+    if (confirmBtn) confirmBtn.style.display = 'none';
+    window.textImportParsedResults = [];
+    return;
+  }
+
+  const results = blocks.map(b => window.parseTextImportBlock(b));
+  window.textImportParsedResults = results;
+
+  const validCount = results.filter(r => r.ok).length;
+  const invalidCount = results.length - validCount;
+
+  let html = `<div style="margin-bottom:8px;font-weight:800;color:var(--text);">سيتم استيراد ${validCount} مكالمة${invalidCount ? ` — تم تجاهل ${invalidCount} (بيانات ناقصة)` : ''}</div>`;
+  results.forEach((r, i) => {
+    if (r.ok) {
+      const c = r.rec;
+      const tagsLine = [c.gender, c.nat, c.ctype, c.topic, c.child, c.loc, c.emo].filter(Boolean).join(' · ');
+      html += `<div style="padding:8px 0;border-bottom:1px solid var(--border);">
+        <div style="font-weight:700;color:var(--accent);">${i + 1}. ${c.phone}</div>
+        ${tagsLine ? `<div style="color:var(--t2);margin-top:2px;">${tagsLine}</div>` : ''}
+        <div style="color:var(--tl2);margin-top:2px;">${c.notes}</div>
+      </div>`;
+    } else {
+      html += `<div style="padding:8px 0;border-bottom:1px solid var(--border);color:var(--red);">
+        ${i + 1}. تم التجاهل — ${r.reason}
+      </div>`;
+    }
+  });
+  preview.style.display = 'block';
+  preview.innerHTML = html;
+  if (confirmBtn) confirmBtn.style.display = validCount > 0 ? 'block' : 'none';
+};
+
+window.confirmTextImport = async function () {
+  const validResults = window.textImportParsedResults.filter(r => r.ok);
+  if (!validResults.length) return;
+
+  let imported = 0;
+  for (const r of validResults) {
+    const dt = new Date();
+    const rec = {
+      seq: window.nextSeq(dt),
+      dt,
+      phone: r.rec.phone,
+      gender: r.rec.gender,
+      nat: r.rec.nat,
+      branch: '',
+      loc: r.rec.loc,
+      src: '',
+      topic: r.rec.topic,
+      ctype: r.rec.ctype,
+      compNo: '',
+      reqNo: '',
+      child: r.rec.child,
+      emo: r.rec.emo,
+      notes: r.rec.notes
+    };
+    window.calls.unshift(rec);
+    await window.persistCall(rec);
+    imported++;
+  }
+
+  window.renderLog();
+  window.updateBadge();
+  window.toast(`تم استيراد ${imported} مكالمة بنجاح`, 'ok');
+  window.closeTextImportModal();
+};
+
 // ===== FILTER / SEARCH =====
 window.filteredLogCalls = function () {
   const q = (document.getElementById('logSearch') || {}).value || '';
