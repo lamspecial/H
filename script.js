@@ -2,20 +2,14 @@
 //  script.js — AM Special Call Center — Fixed & Clean Version
 // ============================================================
 
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import {
-  getFirestore,
-  collection,
-  doc,
-  setDoc,
-  getDoc,
-  getDocs,
-  deleteDoc,
-  onSnapshot,
-  writeBatch,
-  where,
-  enableMultiTabIndexedDbPersistence
-} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+// FIX: كان الاستيراد الثابت (static import) في الأعلى يوقف تنفيذ
+// كل الملف بالكامل لو تعذّر تحميل Firebase (انقطاع شبكة، حجب CORS، إلخ)،
+// فتتعطّل جميع أزرار التطبيق وليس فقط ميزات المزامنة السحابية.
+// الحل: استيراد ديناميكي (dynamic import) محاط بـ try/catch حقيقي،
+// بحيث فشل الشبكة يعطّل المزامنة السحابية فقط ويترك باقي التطبيق
+// (IndexedDB المحلي وكل الأزرار) يعمل بشكل طبيعي.
+let initializeApp, getFirestore, collection, doc, setDoc, getDoc, getDocs,
+  deleteDoc, onSnapshot, writeBatch, where, enableMultiTabIndexedDbPersistence;
 
 // ===== FIREBASE CONFIG =====
 const firebaseConfig = {
@@ -27,27 +21,48 @@ const firebaseConfig = {
   appId: "1:109576870374:web:e1a4c7dc726543ebc7de27"
 };
 
-// ===== FIREBASE INIT =====
+// ===== FIREBASE INIT (غير حاجب — لا يوقف باقي التطبيق عند الفشل) =====
 let _firestore = null;
-try {
-  const app = initializeApp(firebaseConfig);
-  _firestore = getFirestore(app);
+window._firestoreReady = false;
 
-  // Use multi-tab persistence (replaces deprecated enableIndexedDbPersistence)
-  enableMultiTabIndexedDbPersistence(_firestore).catch((err) => {
-    if (err.code === 'failed-precondition') {
-      console.warn('Multi-tab persistence unavailable, falling back.');
-    } else if (err.code === 'unimplemented') {
-      console.warn('Persistence not supported in this browser.');
-    }
-  });
+window.initFirebase = async function () {
+  try {
+    const appMod = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js");
+    const fsMod = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js");
 
-  window._firestoreReady = true;
-  console.log('Firebase initialized ✓');
-} catch (e) {
-  console.error('Firebase init error:', e);
-  window._firestoreReady = false;
-}
+    initializeApp = appMod.initializeApp;
+    getFirestore = fsMod.getFirestore;
+    collection = fsMod.collection;
+    doc = fsMod.doc;
+    setDoc = fsMod.setDoc;
+    getDoc = fsMod.getDoc;
+    getDocs = fsMod.getDocs;
+    deleteDoc = fsMod.deleteDoc;
+    onSnapshot = fsMod.onSnapshot;
+    writeBatch = fsMod.writeBatch;
+    where = fsMod.where;
+    enableMultiTabIndexedDbPersistence = fsMod.enableMultiTabIndexedDbPersistence;
+
+    const app = initializeApp(firebaseConfig);
+    _firestore = getFirestore(app);
+
+    // Use multi-tab persistence (replaces deprecated enableIndexedDbPersistence)
+    enableMultiTabIndexedDbPersistence(_firestore).catch((err) => {
+      if (err.code === 'failed-precondition') {
+        console.warn('Multi-tab persistence unavailable, falling back.');
+      } else if (err.code === 'unimplemented') {
+        console.warn('Persistence not supported in this browser.');
+      }
+    });
+
+    window._firestoreReady = true;
+    console.log('Firebase initialized ✓');
+  } catch (e) {
+    console.error('Firebase init error (متابعة بدون مزامنة سحابية):', e);
+    window._firestoreReady = false;
+  }
+};
+
 
 // ===== FIREBASE LAYER =====
 window.FB = {
@@ -2195,6 +2210,9 @@ window.mergeWithPendingQueue = async function (remoteCalls) {
 // ===== INIT APP =====
 window.initApp = async function () {
   try {
+    // FIX: نحاول الاتصال بـ Firebase أولاً، لكن فشلها لا يوقف باقي
+    // التهيئة بفضل initFirebase المحاط بـ try/catch داخلياً.
+    await window.initFirebase();
     await window.initDB();
     await window.loadSettings();
 
