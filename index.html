@@ -2,304 +2,89 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>اي ام سبيشل</title>
-<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700&family=Tajawal:wght@500;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<title>QR Code دائري - Shabih.io</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qr-code-styling/1.6.0-rc.1/qr-code-styling.js"></script>
+<style>
+  body {
+    margin: 0;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: #f5f5f7;
+    font-family: -apple-system, "Segoe UI", Tahoma, sans-serif;
+    gap: 20px;
+  }
+  #canvas-wrap {
+    background: white;
+    padding: 24px;
+    border-radius: 24px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.12);
+  }
+  h2 { color: #222; margin: 0; }
+  #download {
+    padding: 10px 24px;
+    border-radius: 999px;
+    border: none;
+    background: #111;
+    color: white;
+    font-size: 15px;
+    cursor: pointer;
+  }
+  #download:hover { background: #333; }
+</style>
 </head>
 <body>
+  <h2>Shabih.io</h2>
+  <div id="canvas-wrap"></div>
+  <button id="download">تحميل PNG</button>
 
-<header class="hdr">
-  <div class="logo">
-    <span class="logo-txt" id="logoTxt">اي ام سبيشل</span>
-  </div>
-  <div style="display:flex;align-items:center;gap:12px;">
-    <div class="hdr-clock" style="display:flex;align-items:center;gap:4px;padding:4px 12px;">
-      <button onclick="changeFontSize(-1)" title="تصغير الخط" style="background:none;border:none;cursor:pointer;color:var(--t2);font-size:15px;font-weight:800;padding:4px;transition:color .2s;">−</button>
-      <span id="fontSizeLabel" style="font-size:13px;color:var(--text);min-width:40px;text-align:center;">100%</span>
-      <button onclick="changeFontSize(1)" title="تكبير الخط" style="background:none;border:none;cursor:pointer;color:var(--t2);font-size:15px;font-weight:800;padding:4px;transition:color .2s;">+</button>
-    </div>
-    <div class="hdr-clock" id="clock">--:--</div>
-  </div>
-</header>
+<script>
+  const qrCode = new QRCodeStyling({
+    width: 400,
+    height: 400,
+    type: "canvas",
+    data: "https://Shabih.io",
+    margin: 10,
+    qrOptions: {
+      errorCorrectionLevel: "H"
+    },
+    dotsOptions: {
+      type: "dots",
+      color: "#1a1a1a",
+      gradient: {
+        type: "radial",
+        rotation: 0,
+        colorStops: [
+          { offset: 0, color: "#3a3a3a" },
+          { offset: 1, color: "#000000" }
+        ]
+      }
+    },
+    backgroundOptions: {
+      color: "#ffffff",
+    },
+    cornersSquareOptions: {
+      type: "extra-rounded",
+      color: "#000000"
+    },
+    cornersDotOptions: {
+      type: "dot",
+      color: "#000000"
+    },
+    imageOptions: {
+      crossOrigin: "anonymous",
+      imageSize: 0.35,
+      margin: 6
+    }
+  });
 
-<nav class="tabs-nav">
-  <button class="tab-btn active" data-tab="form" onclick="switchTab('form',this)">تسجيل مكالمة</button>
-  <button class="tab-btn" data-tab="log" onclick="switchTab('log',this)">سجل المكالمات <span id="logBadge" style="display:none" class="cbadge">0</span></button>
-  <button class="tab-btn" data-tab="analytics" onclick="switchTab('analytics',this)">التحليلات</button>
-  <button class="tab-btn" data-tab="maint" onclick="switchTab('maint',this)">الإعدادات</button>
-</nav>
+  qrCode.append(document.getElementById("canvas-wrap"));
 
-<!-- TAB: FORM -->
-<div class="tab-content active" id="tab-form">
-  <div class="fc">
-    <div style="display:flex;align-items:center;gap:8px;margin-bottom:20px;flex-wrap:nowrap;position:relative;overflow-x:auto;">
-<span id="seqLabel" style="display:none;"></span>
-      <button id="dateSettingsBtn" onclick="toggleDateSettings()" title="تعديل التاريخ الافتراضي" class="ob" style="padding:8px 10px;">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
-      </button>
-
-      <button id="tagsToggleBtn" onclick="toggleTagsPanel()" class="ob" style="padding:8px 14px;font-weight:800;font-size:15px;">#</button>
-
-      <button class="ob" style="position:relative;padding:8px 16px;overflow:hidden;">
-        <span id="dateBtnText">التاريخ</span>
-        <input type="date" id="datePicker" style="position:absolute;top:0;left:0;width:100%;height:100%;opacity:0;cursor:pointer;" onchange="onDatePick(this.value)" />
-      </button>
-
-      <button class="ob" style="position:relative;padding:8px 16px;overflow:hidden;">
-        <span id="timeBtnText">الوقت</span>
-        <input type="time" id="timePicker" style="position:absolute;top:0;left:0;width:100%;height:100%;opacity:0;cursor:pointer;" onchange="onTimePick(this.value)" />
-      </button>
-
-      <button class="btn-s" onclick="clearForm()" style="padding:8px 14px;" title="مسح">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>
-      </button>
-      <button class="btn-p" id="submitBtn" onclick="submitCall()" style="padding:8px 18px;" title="حفظ">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
-      </button>
-    </div>
-
-    <!-- Date Settings Panel -->
-    <div id="dateSettingsPanel" style="display:none;margin-bottom:16px;border-radius:12px;padding:12px 16px;border:1px solid var(--border);">
-      <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
-        <span id="fixedDateDisplay" style="font-size:14px;font-weight:800;color:var(--text);flex:1;min-width:60px;">—</span>
-        <button class="btn-p" style="position:relative;padding:8px 16px;font-size:12px;overflow:hidden;">
-          <span>تعديل</span>
-          <input type="date" id="defaultDatePicker" style="position:absolute;top:0;left:0;width:100%;height:100%;opacity:0;cursor:pointer;" onchange="onDefaultDatePick(this.value)" />
-        </button>
-        <button onclick="resetDefaultDate()" class="btn-s" style="padding:8px 16px;font-size:12px;color:var(--teal);border-color:var(--teal);">إزالة ↺</button>
-      </div>
-    </div>
-
-    <!-- Offline badge -->
-    <div id="offlineQueueStatus" style="display:none;align-items:center;gap:8px;background:var(--ambl);border:1px solid var(--amber);border-radius:10px;padding:8px 14px;margin-bottom:12px;font-size:13px;font-weight:700;color:#92400e;">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22C6.477 22 2 17.523 2 12S6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/><path d="M12 8v4l3 3"/></svg>
-      <span id="offlineQueueCount">0 في الانتظار</span>
-      <button onclick="OfflineQ.sync()" style="background:var(--amber);border:none;border-radius:6px;padding:4px 10px;font-size:11px;font-weight:800;color:#fff;cursor:pointer;margin-right:auto;">مزامنة</button>
-    </div>
-
-    <!-- Step 1: Phone -->
-    <div class="fg" id="step-phone-section">
-      <input type="tel" inputmode="numeric" class="fi" id="phone" placeholder="05XXXXXXXX" maxlength="10"
-        oninput="onPhoneInput(this.value)"
-        style="font-size:18px;font-weight:800;letter-spacing:1px;" />
-    </div>
-
-    <!-- Step 2: Details -->
-    <div class="fg" id="step-details-section" style="margin-top:16px;display:none;">
-      <textarea class="fta" id="details" placeholder="ماذا قال العميل...؟"></textarea>
-    </div>
-
-    <!-- Step 3: Tags Panel -->
-    <div id="tagsPanel" style="display:none;margin-top:16px;margin-bottom:20px;">
-      <div id="tagsStepContainer"></div>
-      <div id="tagsStepNav" style="display:flex;gap:8px;margin-top:12px;justify-content:space-between;">
-        <button class="btn-s" id="tagsPrevBtn" onclick="tagsStepPrev()" style="display:none;"> السابق</button>
-        <span id="tagsStepIndicator" style="font-size:12px;font-weight:700;color:var(--tl2);align-self:center;"></span>
-        <button class="btn-s" id="tagsSkipBtn" onclick="tagsStepNext()">التالي</button>
-      </div>
-      <div id="condComp" style="margin-top:12px;display:none;">
-        <input type="text" class="fi" id="compNo" placeholder="رقم الشكوى..." />
-      </div>
-      <div id="condReq" style="margin-top:12px;display:none;">
-        <input type="text" class="fi" id="reqNo" placeholder="رقم الطلب..." />
-      </div>
-    </div>
-
-    <!-- Customer notice -->
-    <div id="custNotice" style="margin-top:12px;display:none;align-items:center;gap:10px;background:var(--al);border-radius:12px;padding:12px 16px;font-weight:700;color:var(--accent);"></div>
-
-    <!-- Next button -->
-    <div id="nextBtnWrap" style="margin-top:16px;display:flex;justify-content:flex-start;">
-      <button class="btn-p" id="nextStepBtn" onclick="goNextStep()" style="padding:10px 28px;font-size:14px;display:flex;align-items:center;gap:8px;">
-        التالي
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
-      </button>
-    </div>
-  </div>
-</div>
-
-<!-- TAB: LOG -->
-<div class="tab-content" id="tab-log">
-  <div class="log-toolbar" style="flex-wrap:wrap;gap:16px;">
-    <div class="log-title">سجل المكالمات <span class="cbadge" id="logCount" style="margin-right:8px;">0</span></div>
-    <div style="display:flex;gap:12px;align-items:center;flex:1;min-width:250px;">
-      <input type="search" id="logSearch" placeholder="بحث برقم الجوال، التسلسل، التفاصيل..." oninput="renderFilteredLog()" class="fi" style="padding:10px 16px;" />
-    </div>
-    <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:15px;">
-      <div class="dropdown">
-        <button class="dropbtn">عرض ▾</button>
-        <div class="dropdown-content">
-          <div style="padding:8px 16px;border-bottom:1px solid var(--border);">
-            <label style="font-size:11px;color:var(--tl2);font-weight:800;display:block;margin-bottom:4px;">ترتيب السجل</label>
-            <select id="logSort" onchange="renderFilteredLog()" style="width:100%;padding:4px;border:none;outline:none;background:transparent;font-weight:700;cursor:pointer;color:var(--text);">
-              <option value="newest">الأحدث</option>
-              <option value="oldest">الأقدم</option>
-              <option value="branch">الفرع</option>
-              <option value="ctype">النوع</option>
-              <option value="src">المصدر</option>
-            </select>
-          </div>
-          <button id="btnGroupMode" onclick="toggleGroupMode()" style="text-align:right;display:flex;justify-content:space-between;align-items:center;">
-            تجميع البيانات <span id="groupModeIcon" style="color:var(--accent);font-weight:bold;"></span>
-          </button>
-          <button id="btnTextView" onclick="toggleTextView()" style="text-align:right;display:flex;justify-content:space-between;align-items:center;">
-            عرض نصي <span id="textViewIcon" style="color:var(--accent);font-weight:bold;"></span>
-          </button>
-        </div>
-      </div>
-      <div class="dropdown">
-        <button class="dropbtn">البيانات ▾</button>
-        <div class="dropdown-content">
-          <button onclick="exportCSV()">تصدير اكسل</button>
-          <button onclick="exportTXT()">تصدير تقرير</button>
-          <button onclick="document.getElementById('importFile').click()">استيراد البيانات</button>
-          <button onclick="openTextImportModal()">استيراد نصي</button>
-        </div>
-      </div>
-      <input type="file" id="importFile" accept=".xlsx,.xls,.csv" style="display:none" onchange="handleImport(event)">
-    </div>
-  </div>
-
-  <div id="textViewPanel" style="display:none;margin-bottom:24px;background:var(--white);border:1px solid var(--border);border-radius:var(--r);box-shadow:var(--s);">
-    <div style="padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;">
-      <span style="font-family:'Tajawal',sans-serif;font-size:14px;font-weight:800;color:var(--text);">تقرير مبسط</span>
-      <button class="btn-s" onclick="copyAllText()" style="padding:6px 14px;font-size:12px;">نسخ الكل</button>
-    </div>
-    <div id="textViewBody" style="padding:20px;font-size:14px;line-height:2.2;color:var(--t2);direction:rtl;white-space:pre-wrap;max-height:480px;overflow-y:auto;"></div>
-  </div>
-  <div id="logWrap"></div>
-</div>
-
-<!-- TAB: ANALYTICS -->
-<div class="tab-content" id="tab-analytics">
-  <div class="sc" style="margin-bottom:24px;padding:16px 20px;">
-    <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
-      <input type="text" id="analyticsSearch" placeholder="اكتب وسم للتصفية ..." onkeydown="if(event.key==='Enter') addAnalyticsTag()" class="fi" style="flex:1;min-width:200px;padding:10px 16px;" />
-      <div style="display:flex;gap:8px;">
-        <button onclick="addAnalyticsTag()" class="btn-p" style="padding:10px 24px;">تصفية</button>
-        <button onclick="clearFilters()" class="btn-s" style="padding:10px 20px;">مسح</button>
-      </div>
-    </div>
-    <div id="filterTagsRow" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:12px;"></div>
-    <div id="suggestedTagsRow" style="display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:12px;"></div>
-  </div>
-
-  <div id="branchAnalyticsGrid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-bottom:24px;"></div>
-
-  <div class="cr" style="grid-template-columns:1fr;margin-bottom:24px;">
-    <div class="ch">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;border-bottom:1px solid var(--border);padding-bottom:12px;">
-        <div class="cht" style="margin-bottom:0;border-bottom:none;padding-bottom:0;">تحليل المكالمات عبر الزمن</div>
-        <select id="timeScaleSelect" class="select-sort" onchange="updateLineChart()">
-          <option value="day">يوم</option>
-          <option value="week">أسبوع</option>
-          <option value="month">شهر</option>
-          <option value="year">سنة</option>
-        </select>
-      </div>
-      <div style="position:relative;height:350px;width:100%;">
-        <canvas id="timelineChart"></canvas>
-      </div>
-    </div>
-  </div>
-
-  <div class="sg">
-    <div class="sc cbl"><div class="slbl">إجمالي المكالمات</div><div class="sval" id="stTotal">0</div><div class="sb"></div></div>
-    <div class="sc crd"><div class="slbl">الشكاوى</div><div class="sval" id="stComp">0</div><div class="sb"></div></div>
-    <div class="sc cbl"><div class="slbl">الاستفسارات</div><div class="sval" id="stInq">0</div><div class="sb"></div></div>
-    <div class="sc cgr"><div class="slbl">الطلبات</div><div class="sval" id="stReq">0</div><div class="sb"></div></div>
-  </div>
-
-  <div class="cr">
-    <div class="ch"><div class="cht">عدد الأطفال</div><div id="chChild"><div style="text-align:center;color:var(--tl2);padding:20px;">لا توجد بيانات</div></div></div>
-    <div class="ch"><div class="cht">نبرة العميل</div><div id="chEmo"><div style="text-align:center;color:var(--tl2);padding:20px;">لا توجد بيانات</div></div></div>
-  </div>
-  <div class="cr">
-    <div class="ch"><div class="cht">مواقع العملاء</div><div id="chLoc"><div style="text-align:center;color:var(--tl2);padding:20px;">لا توجد بيانات</div></div></div>
-    <div class="ch"><div class="cht">الجنسيات (حسب اللكنة)</div><div id="chNat"><div style="text-align:center;color:var(--tl2);padding:20px;">لا توجد بيانات</div></div></div>
-  </div>
-  <div class="cr">
-    <div class="ch"><div class="cht">توزيع الجنس</div><div id="chGen"><div style="text-align:center;color:var(--tl2);padding:20px;">لا توجد بيانات</div></div></div>
-    <div class="ch"><div class="cht">مصادر الوصول</div><div id="chSrc"><div style="text-align:center;color:var(--tl2);padding:20px;">لا توجد بيانات</div></div></div>
-  </div>
-  <div class="cr" style="grid-template-columns:1fr;">
-    <div class="ch"><div class="cht">توزيع فترة المكالمات</div><div id="chTime"><div style="text-align:center;color:var(--tl2);padding:20px;">لا توجد بيانات</div></div></div>
-  </div>
-</div>
-
-<!-- TAB: MAINTENANCE -->
-<div class="tab-content" id="tab-maint">
-  <div class="fc" style="padding:0;">
-    <div style="padding:20px 24px;border-bottom:1px solid var(--border);">
-      <span style="font-family:'Tajawal',sans-serif;font-size:16px;font-weight:800;color:var(--text);">لوحة الإعدادات والصيانة</span>
-    </div>
-    <div style="padding:24px;" id="mBody"></div>
-  </div>
-</div>
-
-
-
-<div class="toast" id="toast"></div>
-
-<!-- Post Save Modal -->
-<div id="post-save-modal" style="display:none;position:fixed;inset:0;background:rgba(15,23,42,0.6);backdrop-filter:blur(4px);z-index:10000;align-items:center;justify-content:center;padding:20px;">
-  <div style="background:var(--white);border-radius:24px;padding:24px;width:100%;max-width:500px;box-shadow:0 10px 40px rgba(0,0,0,0.15);max-height:90vh;overflow-y:auto;">
-    <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;border-bottom:2px solid var(--al);padding-bottom:12px;">
-      <svg width="28" height="28" viewBox="0 0 24 24" fill="#25D366"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
-      <h3 style="font-family:'Tajawal',sans-serif;font-size:18px;font-weight:800;color:var(--text);"> واتساب — <span id="ps-type" style="color:#25D366;"></span></h3>
-    </div>
-    <div id="ps-summary" style="margin-bottom:16px;font-size:13px;color:var(--text);line-height:1.8;background:#f8fafc;padding:12px;border-radius:12px;border:1px solid #e2e8f0;"></div>
-    <div style="margin-bottom:16px;">
-      <label style="font-weight:bold;font-size:13px;color:var(--text);">أسماء الأطفال :</label>
-      <div id="ps-children-container" style="display:flex;flex-direction:column;gap:8px;margin-top:8px;">
-        <input type="text" class="fi child-name-input" placeholder="اسم الطفل" />
-      </div>
-      <button class="btn-s" style="margin-top:8px;padding:6px 12px;font-size:12px;border-radius:8px;" onclick="addPSChildInput()">+ إضافة طفل</button>
-    </div>
-    <div style="display:flex;flex-wrap:wrap;gap:8px;border-top:1px solid var(--border);padding-top:16px;">
-      <button onclick="psNotifyAdmin()" style="flex:1;color:var(--accent);border:1px solid var(--al);padding:8px;border-radius:8px;background:var(--white);font-weight:bold;cursor:pointer;font-family:'Cairo';">الإدارة</button>
-      <button onclick="psNotifyBranch()" style="flex:1;color:var(--amber);border:1px solid var(--ambl);padding:8px;border-radius:8px;background:var(--white);font-weight:bold;cursor:pointer;font-family:'Cairo';">الفرع</button>
-      <button onclick="psSendFollowUp()" style="flex:1;color:var(--green);border:1px solid var(--gl);padding:8px;border-radius:8px;background:var(--white);font-weight:bold;cursor:pointer;font-family:'Cairo';">العميل</button>
-    </div>
-    <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:8px;">
-      <button onclick="psRedirect1()" style="flex:1;color:#fff;background:var(--accent);border:none;padding:8px;border-radius:8px;font-weight:bold;cursor:pointer;font-family:'Cairo';">طلب تواصل</button>
-      <button onclick="psRedirect2()" style="flex:1;color:#fff;background:var(--teal);border:none;padding:8px;border-radius:8px;font-weight:bold;cursor:pointer;font-family:'Cairo';">طلب انتباه العاملة</button>
-    </div>
-    <button class="btn-s" style="width:100%;margin-top:16px;padding:10px;border-radius:12px;cursor:pointer;" onclick="document.getElementById('post-save-modal').style.display='none'">إغلاق</button>
-  </div>
-</div>
-
-<!-- Text Import Modal -->
-<div id="text-import-modal" style="display:none;position:fixed;inset:0;background:rgba(15,23,42,0.6);backdrop-filter:blur(4px);z-index:10000;align-items:center;justify-content:center;padding:20px;">
-  <div style="background:var(--white);border-radius:24px;padding:24px;width:100%;max-width:560px;box-shadow:0 10px 40px rgba(0,0,0,0.15);max-height:90vh;overflow-y:auto;">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;border-bottom:2px solid var(--al);padding-bottom:12px;">
-      <h3 style="font-family:'Tajawal',sans-serif;font-size:17px;font-weight:800;color:var(--text);">استيراد نصي</h3>
-      <button onclick="closeTextImportModal()" style="background:none;border:none;cursor:pointer;font-size:20px;color:var(--t2);line-height:1;">×</button>
-    </div>
-    <div style="font-size:12px;color:var(--t2);line-height:1.9;background:#f8fafc;border:1px solid var(--border);border-radius:12px;padding:10px 14px;margin-bottom:12px;">
-      كل مكالمة 9 أسطر بالترتيب: الجوال، الجنس، الجنسية، نوع المكالمة، الموضوع، عدد الأطفال، الموقع، مشاعر العميل، ملخص المكالمة.
-      اترك سطراً فارغاً للوسم غير المتوفر، وافصل بين كل مكالمة وأخرى بسطر فارغ. الجوال وملخص المكالمة إلزاميان.
-    </div>
-    <textarea id="textImportArea" class="fta" placeholder="0559905345
-رجل
-سعودي
-استفسار
-السعر
-3 اطفال
-السيارة
-ايجابي
-كم مرة يمكن الدخول والخروج بنفس الساعة" style="min-height:220px;font-family:'Cairo',sans-serif;direction:rtl;"></textarea>
-    <div id="textImportPreview" style="display:none;margin-top:12px;font-size:12px;line-height:1.8;background:#f8fafc;border:1px solid var(--border);border-radius:12px;padding:10px 14px;max-height:220px;overflow-y:auto;"></div>
-    <div style="display:flex;gap:8px;margin-top:16px;">
-      <button class="btn-s" style="flex:1;padding:10px;border-radius:12px;" onclick="previewTextImport()">معاينة</button>
-      <button class="btn-p" id="textImportConfirmBtn" style="flex:1;padding:10px;border-radius:12px;display:none;" onclick="confirmTextImport()">تأكيد الاستيراد</button>
-    </div>
-  </div>
-</div>
-
-<script type="module" src="script.js"></script>
+  document.getElementById("download").addEventListener("click", () => {
+    qrCode.download({ name: "shabih-qr", extension: "png" });
+  });
+</script>
 </body>
 </html>
